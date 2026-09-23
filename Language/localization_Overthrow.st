@@ -27,8 +27,8 @@ StringTable {
   CustomStringTableItem "{59DA69F6CA52A3DC}" {
    Id "OVT-AlreadyOccupied"
    Target_en_us "Position is already occupied"
-   Target_it_it "La posizione è già occupata"
    Target_fr_fr "La position est déjà occupée"
+   Target_it_it "La posizione è già occupata"
    Target_de_de "Die Position ist bereits besetzt"
    Target_ru_ru "Точка уже захвачена"
    Target_ko_kr "해당 위치는 이미 점령되어 있습니다"
@@ -51,8 +51,8 @@ StringTable {
   CustomStringTableItem "{59C84C79CA882ABD}" {
    Id "OVT-Amount"
    Target_en_us "Amount"
-   Target_it_it "Quantità"
    Target_fr_fr "Montant"
+   Target_it_it "Quantità"
    Target_de_de "Menge"
    Target_ru_ru "Количество"
    Target_ko_kr "수량"
@@ -184,8 +184,8 @@ StringTable {
   CustomStringTableItem "{59B518A9E7140382}" {
    Id "OVT-BaseNear"
    Target_en_us "Base near"
-   Target_it_it "Base vicina"
    Target_fr_fr "Base proche"
+   Target_it_it "Base vicina"
    Target_de_de "Basis in der Nähe"
    Target_ru_ru "База около"
    Target_ko_kr "인근 기지"
@@ -208,8 +208,8 @@ StringTable {
   CustomStringTableItem "{59B4F0BA1C3CB517}" {
    Id "OVT-BattleProgress"
    Target_en_us "Battle In Progress"
-   Target_it_it "Battaglia in corso"
    Target_fr_fr "Bataille en cours"
+   Target_it_it "Battaglia in corso"
    Target_de_de "Kampf im Gange"
    Target_ru_ru "Идет бой"
    Target_ko_kr "전투 진행 중"
@@ -232,8 +232,8 @@ StringTable {
   CustomStringTableItem "{59B4F0BA13E340D4}" {
    Id "OVT-BattleStartsIn"
    Target_en_us "Battle Starts In"
-   Target_it_it "Inizio battaglia tra"
    Target_fr_fr "La Bataille commence dans"
+   Target_it_it "Inizio battaglia tra"
    Target_de_de "Der Kampf beginnt in"
    Target_ru_ru "Бой начнется через"
    Target_ko_kr "전투 시작까지"
@@ -444,8 +444,8 @@ StringTable {
   CustomStringTableItem "{59C4F15B8934641B}" {
    Id "OVT-Build_MedicalTent"
    Target_en_us "Medical Tent"
-   Target_it_it "Tenda medica"
    Target_fr_fr "Tente Médicale"
+   Target_it_it "Tenda medica"
    Target_de_de "Sanitätszelt"
    Target_ru_ru "Медицинский тент"
    Target_ko_kr "의료 텐트"
@@ -491,8 +491,8 @@ StringTable {
   CustomStringTableItem "{5DA486E22A59D4C7}" {
    Id "OVT-Build_RecruitmentTent"
    Target_en_us "Recruitment Tent"
-   Target_it_it "Tenda di reclutamento"
    Target_fr_fr "Tente de recrutement"
+   Target_it_it "Tenda di reclutamento"
    Target_de_de "Rekrutierungszelt"
    Target_ru_ru "Палатка вербовки"
    Target_zh_cn "招募帐篷"
@@ -514,8 +514,8 @@ StringTable {
   CustomStringTableItem "{5DA486E22A59D4C8}" {
    Id "OVT-Build_RecruitmentTent_Description"
    Target_en_us "Recruit civilians from nearby towns at reduced cost"
-   Target_it_it "Permette di reclutare i civili riducendone il costo"
    Target_fr_fr "Recruter des civils des villes voisines à coût réduit"
+   Target_it_it "Permette di reclutare i civili riducendone il costo"
    Target_de_de "Rekrutieren Sie Zivilisten aus nahegelegenen Städten, zu reduzierten Kosten"
    Target_ru_ru "Нанимать гражданских из близлежащих городов по сниженной стоимости"
    Target_zh_cn "以低价从附近城镇招募平民"
@@ -583,8 +583,8 @@ StringTable {
   CustomStringTableItem "{59D030D767EAB683}" {
    Id "OVT-Build_VehicleMaintenanceRamp"
    Target_en_us "Vehicle Maintenance Ramp"
-   Target_it_it "Rampa di manutenzione veicoli"
    Target_fr_fr "Rampe de Maintenance de Véhicules"
+   Target_it_it "Rampa di manutenzione veicoli"
    Target_de_de "Fahrzeugwartungsrampe"
    Target_ru_ru "Рампа для обслуживания техники"
    Target_ko_kr "차량 정비 램프"
@@ -775,8 +775,8 @@ StringTable {
   CustomStringTableItem "{59A5462B60C888FA}" {
    Id "OVT-Cancel"
    Target_en_us "Cancel"
-   Target_it_it "Annulla"
    Target_fr_fr "Annuler"
+   Target_it_it "Annulla"
    Target_de_de "beenden"
    Target_ru_ru "Отмена"
    Target_ko_kr "취소하기"
@@ -799,8 +799,8 @@ StringTable {
   CustomStringTableItem "{598C5127A5D2149E}" {
    Id "OVT-CannotAfford"
    Target_en_us "You cannot afford that"
-   Target_it_it "Non hai abbastanza soldi"
    Target_fr_fr "Vous n'avez pas assez d'argent"
+   Target_it_it "Non hai abbastanza soldi"
    Target_de_de "Das kannst du dir nicht leisten"
    Target_ru_ru "Вы не можете себе это позволить"
    Target_ko_kr "돈이 충분하지 않습니다."
@@ -823,8 +823,8 @@ StringTable {
   CustomStringTableItem "{59C4F15B7BFD22D6}" {
    Id "OVT-CannotBuildAnythingHere"
    Target_en_us "You cannot build anything here. Try at an FOB or a captured town/base."
-   Target_it_it "Non puoi costruire niente qui. Prova in una FOB o in una base/città catturata"
    Target_fr_fr "Vous ne pouvez rien placer ici, réessayez dans un avant-poste ou une commune/base capturée"
+   Target_it_it "Non puoi costruire niente qui. Prova in una FOB o in una base/città catturata"
    Target_de_de "Hier kannst du nichts bauen. Versuche es an einer FOB oder in einer eroberten Stadt bzw. Basis."
    Target_ru_ru "Вы не можете здесь ничего построить. Попробуйте на FOB или в захваченом городе или базе"
    Target_ko_kr "여기서는 아무것도 건설할 수 없습니다. 전진 기지(FOB)나 점령한 마을/기지에서 시도하세요."
@@ -847,8 +847,8 @@ StringTable {
   CustomStringTableItem "{59C4F15B5D50BCD3}" {
    Id "OVT-CannotBuildHere"
    Target_en_us "You cannot build that here"
-   Target_it_it "Non puoi costruire nulla qui"
    Target_fr_fr "Vous ne pas pouvez construire ceci ici"
+   Target_it_it "Non puoi costruire nulla qui"
    Target_de_de "Das kannst du hier nicht bauen"
    Target_ru_ru "Вы не можете строить здесь"
    Target_ko_kr "여기서는 선택한 것을 건설할 수 없습니다."
@@ -871,8 +871,8 @@ StringTable {
   CustomStringTableItem "{59C4F15B2987932A}" {
    Id "OVT-CannotBuildTown"
    Target_en_us "You can only build that in small villages"
-   Target_it_it "Puoi costruire questo edificio solo nei piccoli villaggi"
    Target_fr_fr "Vous pouvez construire ceci uniquement dans un village."
+   Target_it_it "Puoi costruire questo edificio solo nei piccoli villaggi"
    Target_de_de "Das kannst du nur in kleinen Dörfern bauen"
    Target_ru_ru "Вы можете это построить только в  деревнях"
    Target_ko_kr "선택한 것은 작은 마을에서만 건설할 수 있습니다."
@@ -915,8 +915,8 @@ StringTable {
   CustomStringTableItem "{59C4F15B22A9F14E}" {
    Id "OVT-CannotBuildVillage"
    Target_en_us "You cannot build that in a small village"
-   Target_it_it "Non puoi costruire questo edificio in un piccolo villaggio"
    Target_fr_fr "Vous ne pouvez pas construire ceci dans un petit village"
+   Target_it_it "Non puoi costruire questo edificio in un piccolo villaggio"
    Target_de_de "Das kann man nicht in einem kleinen Dorf bauen"
    Target_ru_ru "Вы не можете это простроить в деревне"
    Target_ko_kr "작은 마을에서는 선택한 것을 건설할 수 없습니다."
@@ -939,8 +939,8 @@ StringTable {
   CustomStringTableItem "{59A49A9BE80620C3}" {
    Id "OVT-CannotFastTravelDistance"
    Target_en_us "That is too short of a distance to fast travel"
-   Target_it_it "La distanza è troppo breve per il viaggio rapido."
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide pour si peu, vous avez des jambes !"
+   Target_it_it "La distanza è troppo breve per il viaggio rapido."
    Target_de_de "Die Entfernung ist zu gering für eine Schnellreise"
    Target_ru_ru "Это очень маленькая дистанция для быстрого перемещения"
    Target_ko_kr "빠른 이동을 하기에는 너무 짧은 거리입니다."
@@ -963,8 +963,8 @@ StringTable {
   CustomStringTableItem "{59B4F0B91B3216F6}" {
    Id "OVT-CannotFastTravelDuringQRF"
    Target_en_us "You cannot fast travel during a battle"
-   Target_it_it "Non puoi usare il viaggio rapido durante una battaglia"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide pendant une contre attaque"
+   Target_it_it "Non puoi usare il viaggio rapido durante una battaglia"
    Target_de_de "Während eines Kampfes kannst du keine Schnellreise nutzen"
    Target_ru_ru "Вы не можете переместиться в бою"
    Target_ko_kr "전투 중에는 빠른 이동을 할 수 없습니다."
@@ -1020,8 +1020,8 @@ StringTable {
   CustomStringTableItem "{59A49A9B02ABC32B}" {
    Id "OVT-CannotFastTravelThere"
    Target_en_us "You cannot fast travel there. Must be near an owned house, camp, FOB or controlled base"
-   Target_it_it "Non puoi effettuare viaggi rapidi in quel punto. È necessario trovarsi nei pressi di una casa di proprietà, un accampamento, una FOB o una base sotto controllo."
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide ici. Vous devez sélectionner une propriété ou un avant-poste/base que vous controllez"
+   Target_it_it "Non puoi effettuare viaggi rapidi in quel punto. È necessario trovarsi nei pressi di una casa di proprietà, un accampamento, una FOB o una base sotto controllo."
    Target_de_de "Du kannst nicht dorthin schnellreisen. Du musst dich in der Nähe eines eigenen Hauses, eines Lagers, einer FOB oder einer kontrollierten Basis befinden"
    Target_ru_ru "Вы не можете переместиться сюда. Точка должна быть возле купленого дома, лагеря, ПОБ или контролируемой базы"
    Target_ko_kr "선택한 곳으로 빠른 이동을 할 수 없습니다. 소유한 집, 캠프, 전진기지(FOB) 또는 점령한 기지 근처여야 합니다."
@@ -1044,8 +1044,8 @@ StringTable {
   CustomStringTableItem "{59B4F0B9EBF698FF}" {
    Id "OVT-CannotFastTravelToQRF"
    Target_en_us "You cannot fast travel to a battle in progress"
-   Target_it_it "Non puoi usare il viaggio rapido durante una battaglia in corso"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide ependant une bataille"
+   Target_it_it "Non puoi usare il viaggio rapido durante una battaglia in corso"
    Target_de_de "Du kannst nicht per Schnellreise zu einen laufenden Kampf reisen."
    Target_ru_ru "Вы не можете переместиться к зоне боевых действий"
    Target_ko_kr "전투중인 지역으론 빠른 이동을 할 수 없습니다."
@@ -1068,8 +1068,8 @@ StringTable {
   CustomStringTableItem "{59A49A9B1B4C8E20}" {
    Id "OVT-CannotFastTravelWanted"
    Target_en_us "You cannot fast travel while wanted"
-   Target_it_it "Non puoi usare il viaggio rapido mentre sei ricercato"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide en étant recherché"
+   Target_it_it "Non puoi usare il viaggio rapido mentre sei ricercato"
    Target_de_de "Du kannst keine Schnellreise nutzen, solange du gesucht wirst"
    Target_ru_ru "Вы не можете переместиться во время розыска"
    Target_ko_kr "수배된 상태에서는 빠른 이동을 할 수 없습니다."
@@ -1148,8 +1148,8 @@ StringTable {
   CustomStringTableItem "{59B4D7D75C4B5A65}" {
    Id "OVT-CaptureBase"
    Target_en_us "Capture Base"
-   Target_it_it "Conquista la base"
    Target_fr_fr "Capturer la base"
+   Target_it_it "Conquista la base"
    Target_de_de "Basis einnehmen"
    Target_ru_ru "Захват базы"
    Target_ko_kr "기지 점령"
@@ -1329,8 +1329,8 @@ StringTable {
   CustomStringTableItem "{59A6ED8D1D1EF6CA}" {
    Id "OVT-CatchBus"
    Target_en_us "Catch a bus"
-   Target_it_it "Fermata del bus"
    Target_fr_fr "Prendre un bus"
+   Target_it_it "Fermata del bus"
    Target_de_de "Nimm den Bus"
    Target_ru_ru "Поймать автобус"
    Target_ko_kr "버스 잡기"
@@ -1385,8 +1385,8 @@ StringTable {
   CustomStringTableItem "{59C30B007FD079D1}" {
    Id "OVT-ContinueSave"
    Target_en_us "Continue Save"
-   Target_it_it "Continua e Salva"
    Target_fr_fr "Reprendre la sauvegarde"
+   Target_it_it "Continua e Salva"
    Target_de_de "Weiter Speichern"
    Target_ru_ru "Продолжить сохранение"
    Target_ko_kr "저장 계속하기"
@@ -1497,8 +1497,8 @@ StringTable {
   CustomStringTableItem "{59A6ED95F1AB81D0}" {
    Id "OVT-DeliverMedicalSupplies"
    Target_en_us "Deliver Medical Supplies"
-   Target_it_it "Consegna rifornimenti medici"
    Target_fr_fr "Livrer le Matériel Médical"
+   Target_it_it "Consegna rifornimenti medici"
    Target_de_de "Medizinische Hilfsgüter liefern"
    Target_ru_ru "Доставить медикаменты"
    Target_ko_kr "의료 물자 전달"
@@ -1751,8 +1751,8 @@ StringTable {
   CustomStringTableItem "{59C84C639B645258}" {
    Id "OVT-DonateFunds"
    Target_en_us "Donate Funds"
-   Target_it_it "Dona fondi"
    Target_fr_fr "Donner des fonds"
+   Target_it_it "Dona fondi"
    Target_de_de "Spenden Sie Geld"
    Target_ru_ru "Переслать деньги"
    Target_ko_kr "송금"
@@ -1775,8 +1775,8 @@ StringTable {
   CustomStringTableItem "{59CEA732CF3E444B}" {
    Id "OVT-DriverMustExit"
    Target_en_us "Driver must exit vehicle first"
-   Target_it_it "Il conducente deve prima uscire dal veicolo."
    Target_fr_fr "Le conducteur doit d'abord sortir du véhicule"
+   Target_it_it "Il conducente deve prima uscire dal veicolo."
    Target_de_de "Der Fahrer muss das Fahrzeug zuerst verlassen"
    Target_ru_ru "Водитель сперва должен покинуть транспорт"
    Target_ko_kr "운전자는 먼저 차량에서 내려야 합니다"
@@ -1799,8 +1799,8 @@ StringTable {
   CustomStringTableItem "{59CC0DA6CE6D0311}" {
    Id "OVT-EquipmentCost"
    Target_en_us "Equipment Cost"
-   Target_it_it "Costo equipaggiamento"
    Target_fr_fr "Coût de l'équipement"
+   Target_it_it "Costo equipaggiamento"
    Target_de_de "Ausrüstungskosten"
    Target_ru_ru "Стоимость снаряжения"
    Target_ko_kr "장비 비용"
@@ -2440,8 +2440,8 @@ StringTable {
   CustomStringTableItem "{5990833697321087}" {
    Id "OVT-FieldManual_Category_Overthrow_Title"
    Target_en_us "Overthrow"
-   Target_it_it "Overthrow"
    Target_fr_fr "Overthrow"
+   Target_it_it "Overthrow"
    Target_de_de "Overthrow"
    Target_ru_ru "Overthrow"
    Target_ko_kr "Overthrow"
@@ -2769,8 +2769,8 @@ StringTable {
   CustomStringTableItem "{5992D5041850CA26}" {
    Id "OVT-FieldManual_FastTravel_Text"
    Target_en_us "Open the map and select a location you can travel to: a house you own or rent, your own camp or any public camp, a FOB, or a base the resistance controls. Its info panel has a travel button showing the fare. Fast travel costs the distance in kilometres multiplied by the fast travel price from the difficulty settings, charged for a minimum of one kilometre. Recruits within 50 metres travel with you by default and each one pays a full fare; the panel has a toggle to leave them behind. You cannot fast travel while you are wanted, to somewhere closer than the minimum travel distance, or as a passenger in a vehicle - only the driver takes the vehicle along - and a QRF in progress can block it, depending on the difficulty settings. For bus travel, use \"Catch a bus\" at a bus stop and pick another bus stop on the map: the bus fare has no minimum distance, and you must be on foot."
-   Target_it_it "Apri la mappa e seleziona una località raggiungibile: una casa di proprietà o in affitto, il tuo accampamento o uno pubblico, una FOB o una base controllata dalla Resistenza. Il relativo pannello informativo include un pulsante di viaggio che indica il costo della tratta. Il viaggio rapido ha un costo pari alla distanza in chilometri moltiplicata per la tariffa unitaria definita nelle impostazioni di difficoltà (con un addebito minimo calcolato su un chilometro). Le reclute entro un raggio di 50 metri viaggiano con te per impostazione predefinita, pagando ciascuna la tariffa intera; è possibile disattivare questa opzione tramite un apposito comando per lasciarle indietro. Non è possibile effettuare viaggi rapidi se si è ricercati, se la destinazione è più vicina della distanza minima consentita o se si è passeggeri di un veicolo (solo il conducente porta con sé il veicolo); inoltre, la presenza di una QRF (forza di reazione rapida) in corso può bloccare il viaggio rapido, a seconda delle impostazioni di difficoltà. Per viaggiare in autobus, utilizza l'opzione \"Prendi l'autobus\" presso una fermata e seleziona un'altra fermata sulla mappa: la tariffa dell'autobus non prevede una distanza minima e l'azione richiede di essere a piedi."
    Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser le \"Déplacement Rapide\". La carte s'ouvrira et vous pourrez cliquer sur n'importe quelle Maison, Camp, Avant poste ou base que vous ou la résistance possédez/controllez pour vous y déplacer. Selon la difficulé, cela peut vous coûter de l'argent."
+   Target_it_it "Apri la mappa e seleziona una località raggiungibile: una casa di proprietà o in affitto, il tuo accampamento o uno pubblico, una FOB o una base controllata dalla Resistenza. Il relativo pannello informativo include un pulsante di viaggio che indica il costo della tratta. Il viaggio rapido ha un costo pari alla distanza in chilometri moltiplicata per la tariffa unitaria definita nelle impostazioni di difficoltà (con un addebito minimo calcolato su un chilometro). Le reclute entro un raggio di 50 metri viaggiano con te per impostazione predefinita, pagando ciascuna la tariffa intera; è possibile disattivare questa opzione tramite un apposito comando per lasciarle indietro. Non è possibile effettuare viaggi rapidi se si è ricercati, se la destinazione è più vicina della distanza minima consentita o se si è passeggeri di un veicolo (solo il conducente porta con sé il veicolo); inoltre, la presenza di una QRF (forza di reazione rapida) in corso può bloccare il viaggio rapido, a seconda delle impostazioni di difficoltà. Per viaggiare in autobus, utilizza l'opzione \"Prendi l'autobus\" presso una fermata e seleziona un'altra fermata sulla mappa: la tariffa dell'autobus non prevede una distanza minima e l'azione richiede di essere a piedi."
    Target_de_de "Öffne die Karte und wähle einen Ort aus, zu dem du reisen kannst: ein Haus, das dir gehört oder das du mietest, dein eigenes Camp oder ein öffentliches Camp, einen FOB oder eine vom Widerstand kontrollierte Basis. Im Informationsfenster gibt es eine Schaltfläche für die Reise, auf der der Fahrpreis angezeigt wird. Schnellreise kostet die Entfernung in Kilometern multipliziert mit dem in den Schwierigkeitseinstellungen festgelegten Schnellreisepreis, wobei mindestens ein Kilometer berechnet wird. Rekruten in einem Umkreis von 50 Metern reisen standardmäßig mit dir und jeder von ihnen zahlt den vollen Fahrpreis; im Fenster gibt es einen Schalter, mit dem du sie zurücklassen kannst. Du kannst nicht schnellreisen, solange du gesucht wirst, zu einem Ziel, das näher als die Mindestentfernung liegt, oder als Beifahrer in einem Fahrzeug – nur der Fahrer nimmt das Fahrzeug mit – und eine laufende QRF kann die Schnellreise abhängig von den Schwierigkeitseinstellungen blockieren. Für Busreisen verwende an einer Bushaltestelle \"Nimm den Bus\" und wähle auf der Karte eine andere Bushaltestelle aus: Beim Busfahrpreis gibt es keine Mindestentfernung und du musst zu Fuß sein."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Быстрого перемещения\". Откроется карта и вы можете нажать на любой купленый дом, построеный лагерь, FOB или захваченную базу. Вы заплатите небольое колличество денег за эту услугу в зависимости от уровня сложности."
    Target_ko_kr "빠른 이동을 사용하려면 인벤토리에 지도가 있어야 합니다. 지도가 열리면 소유한 집, 캠프, 전진 기지(FOB), 또는 저항군이 현재 점령한 기지를 클릭하여 즉시 이동할 수 있습니다. 이 기능을 이용 시 난이도에 따라 소량의 비용이 발생합니다."
@@ -3719,8 +3719,8 @@ StringTable {
   CustomStringTableItem "{599083306EFCACF6}" {
    Id "OVT-FieldManual_MainMenu_Text"
    Target_en_us "Open the main menu with <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> to access most of the features of Overthrow."
-   Target_it_it "Apri il menu principale premendo <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> per accedere alla maggior parte delle funzionalità di Overthrow."
    Target_fr_fr "Ouvrez le menu principal avec <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> pour accéder à la plupart des fonctions d'Overthrow"
+   Target_it_it "Apri il menu principale premendo <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> per accedere alla maggior parte delle funzionalità di Overthrow."
    Target_de_de "Öffne das Hauptmenü mit <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>, um auf die meisten Funktionen von Overthrow zuzugreifen."
    Target_ru_ru "Откройте главное меню нажатем кнопки <color rgba='226,168,79,255'><action name=\\"OverthrowMainMenu\\"/></color>для доступа ко всем основным возможностям Overthrow."
    Target_ko_kr "Overthrow의 대부분 기능에 접근하려면 <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>를 눌러 메인 메뉴를 여세요."
@@ -3764,8 +3764,8 @@ StringTable {
   CustomStringTableItem "{5990833199C7A051}" {
    Id "OVT-FieldManual_MainMenu_Title"
    Target_en_us "Main Menu"
-   Target_it_it "Menu principale"
    Target_fr_fr "Menu Principal"
+   Target_it_it "Menu principale"
    Target_de_de "Hauptmenü"
    Target_ru_ru "Главное меню"
    Target_ko_kr "메인 메뉴"
@@ -3998,8 +3998,8 @@ StringTable {
   CustomStringTableItem "{5992D5044118B4C5}" {
    Id "OVT-FieldManual_MapInfo_Text"
    Target_en_us "You must have a map in your inventory to open it with <color rgba='226,168,79,255'><action name=\"GadgetMap\"/></color>. Overthrow marks towns, bases, FOBs, camps, houses, shops, gun dealers, warehouses, ports, radio towers, bus stops, your vehicles and your waypoints on it. Move the map cursor over a marker to show an info panel about that location, and click the marker to keep the panel pinned open. Clicking an empty part of the map unpins it again."
-   Target_it_it "Per aprire la mappa premendo <color rgba='226,168,79,255'><action name=\"GadgetMap\"/></color>, è necessario averne una nell'inventario. Overthrow vi visualizza località, basi, FOB, accampamenti, abitazioni, negozi, armerie, magazzini, porti, torri radio, fermate dell'autobus, i tuoi veicoli e i tuoi waypoint. Spostando il cursore della mappa su un indicatore si visualizza il pannello informativo della relativa località; cliccando sull'indicatore, il pannello rimane aperto (fissato). Cliccando su un punto vuoto della mappa, il pannello viene chiuso."
    Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser \"Infos Carte\". La carte s'ouvrira lorsque vous cliquerez, puis vous pourrez sélectionner un endroit sur la carte pour voir toutes les informations connues à son sujet."
+   Target_it_it "Per aprire la mappa premendo <color rgba='226,168,79,255'><action name=\"GadgetMap\"/></color>, è necessario averne una nell'inventario. Overthrow vi visualizza località, basi, FOB, accampamenti, abitazioni, negozi, armerie, magazzini, porti, torri radio, fermate dell'autobus, i tuoi veicoli e i tuoi waypoint. Spostando il cursore della mappa su un indicatore si visualizza il pannello informativo della relativa località; cliccando sull'indicatore, il pannello rimane aperto (fissato). Cliccando su un punto vuoto della mappa, il pannello viene chiuso."
    Target_de_de "Du musst eine Karte im Inventar haben, um sie mit <color rgba='226,168,79,255'><action name=\"GadgetMap\"/></color> zu öffnen. Overthrow markiert darauf Städte, Basen, FOBs, Camp, Häuser, Geschäfte, Waffenhändler, Lagerhäuser, Häfen, Funktürme, Bushaltestellen, deine Fahrzeuge und deine Wegpunkte. Bewege den Kartenzeiger über eine Markierung, um ein Informationsfenster zu diesem Ort anzuzeigen, und klicke auf die Markierung, damit das Fenster geöffnet bleibt. Durch Klicken auf einen leeren Bereich der Karte wird es wieder gelöst."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Информации о карте\". Нажав на эту  кнопку из главного меню, в открывшейся карте, вы  нажать на любую точку на карте, чтобы посмотреть информацию об этой локации, включая разведданые известные об этой точке."
    Target_ko_kr "\"지도 정보\"를 사용하려면 인벤토리에 지도가 있어야 합니다. 메인 메뉴에서 이 항목을 클릭하면 지도가 열리고, 지도 어느 곳이나 클릭하면 해당 위치에 대한 정보와 알려진 정보(information)를 확인할 수 있습니다."
@@ -4502,6 +4502,25 @@ StringTable {
    Modified 1786665600
    Author "Claude"
    LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B00000000002C}" {
+   Id "OVT-FieldManual_Options_Text"
+   Target_en_us "The Options screen holds up to three sections: This Player, Resistance and Server. A section appears only if it holds an option you may change. The Resistance section needs officer status. The Server section needs the admin role. A single player or the host of their own game always sees every section.<br/>The Server section carries two settings for the campaign save. Automatic saving turns the save timer on or off. Time between saves sets the gap between automatic saves, from 2 to 60 minutes. A change applies at once, with no restart, and it reaches every player. It also survives a save and a Continue."
+   Target_it_it "La schermata delle opzioni comprende fino a tre sezioni: Giocatore, Resistenza e Server. Una sezione appare solo se contiene un'opzione modificabile. La sezione Resistenza richiede lo stato di ufficiale. La sezione Server richiede il ruolo di amministratore. Un giocatore singolo o l'host della propria partita visualizza sempre tutte le sezioni.<br/>La sezione Server contiene due impostazioni per il salvataggio della campagna. Il salvataggio automatico attiva o disattiva il timer di salvataggio. L'intervallo tra i salvataggi definisce la distanza temporale tra i salvataggi automatici, da 2 a 60 minuti. Le modifiche diventano effettive immediatamente, senza necessità di riavvio, e si applicano a tutti i giocatori; l'impostazione viene inoltre mantenuta dopo il salvataggio e la ripresa della partita."
+   Target_de_de "Der Bildschirm „Optionen“ umfasst bis zu drei Bereiche: „Dieser Spieler“, „Widerstand“ und „Server“. Ein Bereich wird nur angezeigt, wenn er eine Option enthält, die geändert werden kann. Für den Bereich „Widerstand“ ist der Offiziersstatus erforderlich, für den Bereich „Server“ die Administratorrolle. Einzelspieler oder der Host eines eigenen Spiels sehen stets alle Bereiche.<br/>Der Bereich „Server“ enthält zwei Einstellungen für das Speichern der Kampagne. „Automatisches Speichern“ aktiviert oder deaktiviert den Speicher-Timer. „Zeit zwischen Speichervorgängen“ legt das Intervall für automatische Speicherungen fest (zwischen 2 und 60 Minuten). Änderungen werden sofort und ohne Neustart wirksam und gelten für alle Spieler; sie bleiben auch nach dem Speichern und Fortsetzen des Spiels erhalten."
+   Comment "Field Manual, Getting Started > Main Menu page, new Options sub-section for core/options phase 9. Reuses #OVT-MainMenu_Options as the sub-header, same pattern as the existing Resistance sub-section. CONTAINS RICH TEXT: one <br/> line break between the two paragraphs, must be preserved in translation. FACT-CHECKED against docs/features/core/options/implementation.md sections 1, 3.5, 3.9, D7 and D9; Scripts/Game/UI/Context/OVT_OptionsContext.c (section walk, empty section never renders); Scripts/Game/GameMode/Managers/OVT_OptionsManagerComponent.c RegisterDefaults (the two autosave options, interval 120-3600s in 60s steps, shown in minutes); Scripts/Game/Components/Controller/OVT_OptionsRequestComponent.c PlayerMayEditScope and PlayerMayEditWorld (officer for Resistance, admin role for Server, single player or listen host always passes). Reference voice: describes, does not instruct."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1785656471
+   Author "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5502,8 +5521,8 @@ StringTable {
   CustomStringTableItem "{5992D5049E68387B}" {
    Id "OVT-FieldManual_Resistance_Text"
    Target_en_us "Opens a menu allowing you to see info or change settings about the resistance. Officers can assign other officers here or set a tax rate (Default is 0%) that will deposit an amount of the regular income directly to the Resistance Funds instead. Officers can withdraw money from resistance funds here or send it to another player. Any player can donate money to the resistance efforts here as well."
-   Target_it_it "Apre un menu che consente di visualizzare informazioni o modificare le impostazioni relative alla Resistenza. Da qui, gli ufficiali possono assegnare altri ufficiali o impostare un'aliquota fiscale (predefinita allo 0%) per far confluire parte delle entrate regolari direttamente nelle casse della Resistenza. Gli ufficiali possono prelevare fondi dalla cassa della Resistenza o trasferirli a un altro giocatore. Anche qualsiasi altro giocatore può effettuare donazioni a sostegno della Resistenza tramite questa schermata."
    Target_fr_fr "Ouvre un menu vous permettant de voir & modifier les paramètres de la résistance. Les officiers peuvent définir d'autres officiers et régler les impôts (0% par défaut) que chaque membre de la résistance doit payer aux fonds communs. Les officiers peuvent retirer de l'argent des fonds communs ou en envoyer à d'autres joueurs. N'importe quel joueur peut donner de l'argent pour la résistance."
+   Target_it_it "Apre un menu che consente di visualizzare informazioni o modificare le impostazioni relative alla Resistenza. Da qui, gli ufficiali possono assegnare altri ufficiali o impostare un'aliquota fiscale (predefinita allo 0%) per far confluire parte delle entrate regolari direttamente nelle casse della Resistenza. Gli ufficiali possono prelevare fondi dalla cassa della Resistenza o trasferirli a un altro giocatore. Anche qualsiasi altro giocatore può effettuare donazioni a sostegno della Resistenza tramite questa schermata."
    Target_de_de "Öffnet ein Menü, in dem du Informationen über den Widerstand ansehen oder dessen Einstellungen ändern kannst. Offiziere können hier andere Offiziere ernennen oder einen Steuersatz festlegen (Standard: 0 %), durch den ein Anteil des regulären Einkommens direkt in die Widerstandskasse eingezahlt wird. Offiziere können hier Geld aus der Widerstandskasse abheben oder an einen anderen Spieler senden. Außerdem kann jeder Spieler hier Geld für die Bemühungen des Widerstands spenden."
    Target_ru_ru "Меню позволяющее посмотреть иноформацию или изменить настройки сопротивления. Офицер здесь может назначать на должность других офицеров, а так же задавать размер налогов. (По умолчанию 0%)  это позволит вместо этого вносить сумму регулярного дохода непосредственно в фонды сопротивления. Офицер здесь может снимать деньги со счета сопротивления или передавать другому игроку. Любой игрок может делать взносы на счёт сопротивления, для его усиления."
    Target_ko_kr "저항군에 관한 정보 확인 또는 설정 변경이 가능한 메뉴입니다. 장교는 여기서 다른 장교를 임명할 수 있으며, 세율(기본값 0%)을 설정할 수 있습니다. 이 세율에 따라 정기 수입의 일부가 저항군 자금으로 직접 입금됩니다. 장교는 저항군 자금에서 돈을 인출하거나 다른 플레이어에게 보낼 수 있습니다. 모든 플레이어는 저항군 강화 목적의 기부를 이곳에서 할 수 있습니다."
@@ -7682,8 +7701,8 @@ StringTable {
   CustomStringTableItem "{59D05007F9A93F67}" {
    Id "OVT-Fuel"
    Target_en_us "Fuel"
-   Target_it_it "Carburante"
    Target_fr_fr "Carburant"
+   Target_it_it "Carburante"
    Target_de_de "Kraftstoff"
    Target_ru_ru "Топливо"
    Target_ko_kr "연료"
@@ -8290,8 +8309,8 @@ StringTable {
   CustomStringTableItem "{59908363B46DA2C7}" {
    Id "OVT-GunDealer"
    Target_en_us "Gun Dealer"
-   Target_it_it "Mercante d'armi"
    Target_fr_fr "Marchant d'Armes"
+   Target_it_it "Mercante d'armi"
    Target_de_de "Waffenhändler"
    Target_ru_ru "Торговец оружием"
    Target_ko_kr "총기 딜러"
@@ -9770,8 +9789,8 @@ StringTable {
   CustomStringTableItem "{59C527544D0B9EF0}" {
    Id "OVT-Heal"
    Target_en_us "Heal"
-   Target_it_it "Cura"
    Target_fr_fr "Soigner"
+   Target_it_it "Cura"
    Target_de_de "Heilen"
    Target_ru_ru "Лечить"
    Target_ko_kr "치료"
@@ -9794,8 +9813,8 @@ StringTable {
   CustomStringTableItem "{59C5275449083085}" {
    Id "OVT-Healed"
    Target_en_us "You have been healed"
-   Target_it_it "Sei stato curato"
    Target_fr_fr "Vous avez été soigné"
+   Target_it_it "Sei stato curato"
    Target_de_de "Du wurdest geheilt"
    Target_ru_ru "Вы были вылечены"
    Target_ko_kr "당신은 치료되었습니다"
@@ -9818,8 +9837,8 @@ StringTable {
   CustomStringTableItem "{59D05007FF9B8533}" {
    Id "OVT-Health"
    Target_en_us "Health"
-   Target_it_it "Salute"
    Target_fr_fr "Santé"
+   Target_it_it "Salute"
    Target_de_de "Gesundheit"
    Target_ru_ru "Здоровье"
    Target_ko_kr "체력"
@@ -9888,8 +9907,8 @@ StringTable {
   CustomStringTableItem "{59C527545D12FEDB}" {
    Id "OVT-HomeSet"
    Target_en_us "Your home is now set to here"
-   Target_it_it "La tua base è stata impostata qui"
    Target_fr_fr "Votre domicile est désormais ici"
+   Target_it_it "La tua base è stata impostata qui"
    Target_de_de "Dein Zuhause wurde auf diesen Ort festgelegt"
    Target_ru_ru "Ваш дом теперь установлен в этой точке"
    Target_ko_kr "이제 집이 설정되었습니다."
@@ -9923,8 +9942,8 @@ StringTable {
   CustomStringTableItem "{5D5AD8A5702C6A81}" {
    Id "OVT-Import"
    Target_en_us "Import"
-   Target_it_it "Importa"
    Target_fr_fr "Importer"
+   Target_it_it "Importa"
    Target_de_de "Importieren"
    Target_ru_ru "Импорт"
    Target_ko_kr "가져오기"
@@ -9947,8 +9966,8 @@ StringTable {
   CustomStringTableItem "{59A6DA4F01F49A60}" {
    Id "OVT-Income"
    Target_en_us "Income"
-   Target_it_it "Entrate"
    Target_fr_fr "Revenu"
+   Target_it_it "Entrate"
    Target_de_de "Einkommen"
    Target_ru_ru "Доход"
    Target_ko_kr "수입"
@@ -9977,6 +9996,9 @@ StringTable {
    "If you are new to Overthrow, there is a set of tutorials in the \"Jobs\" section in the main Overthrow menu."\
    ""\
    "For more info on Overthrow's features and gameplay just have a look at the \"Field Manual\""
+   Target_fr_fr "Bienvenue sur Overthrow! Ceci est votre domicile, vous réapparaitrez ici et pourrez y effectuer des déplacement rapides pour pas très cher dans le menu principal <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. Vous possédez également une voiture dans le garage."\
+   ""\
+   "Pour plus d'informations sur les fonctionnalités d'Overthrow, ouvrez le \"Manuel de terrain\""
    Target_it_it "Benvenuto in Overthrow! Questa è la tua base: qui rinascerai e potrai tornarci con il viaggio rapido pagando una piccola somma tramite il menu principale <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>."\
    ""\
    "Possiedi un'auto parcheggiata nel garage e una pistola che porti addosso. I nemici ti considereranno un civile finché non ti vedranno armato e non ti spareranno; fai quindi attenzione quando estrai l'arma in loro presenza. Se sei ricercato dal nemico, nell'angolo in alto a destra appariranno delle stelle."\
@@ -9984,9 +10006,6 @@ StringTable {
    "Se sei nuovo di Overthrow, troverai una serie di tutorial nella sezione \"Incarichi\" (Jobs) del menu principale della mod."\
    ""\
    "Per maggiori informazioni sulle funzionalità e sulle meccaniche di gioco di Overthrow, consulta il \"Manuale da campo\" (Field Manual)."
-   Target_fr_fr "Bienvenue sur Overthrow! Ceci est votre domicile, vous réapparaitrez ici et pourrez y effectuer des déplacement rapides pour pas très cher dans le menu principal <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. Vous possédez également une voiture dans le garage."\
-   ""\
-   "Pour plus d'informations sur les fonctionnalités d'Overthrow, ouvrez le \"Manuel de terrain\""
    Target_de_de "Willkommen bei Overthrow! Dies ist dein Zuhause. Du wirst hier wieder einsteigen und kannst gegen eine kleine Gebühr hierher schnellreisen, indem du das Hauptmenü mit <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> öffnest."\
    ""\
    "Du besitzt ein Auto, das in deiner Garage geparkt ist, und in deiner Hose befindet sich eine Handfeuerwaffe. Der Feind hält dich für einen Zivilisten, solange er dich nicht mit einer Waffe sieht, und wird nicht auf dich schießen. Sei deshalb vorsichtig, wenn du in seiner Nähe eine Waffe ausrüstest. Oben rechts erscheinen Sterne, wenn du vom Feind als \"wanted\" gesucht wirst."\
@@ -10033,8 +10052,8 @@ StringTable {
   CustomStringTableItem "{5D34246EAE2E228C}" {
    Id "OVT-IsHome"
    Target_en_us "Your Home (Respawn Point)"
-   Target_it_it "La tua base (punto di rinascita)"
    Target_fr_fr "Domicile (Point de réapparition)"
+   Target_it_it "La tua base (punto di rinascita)"
    Target_de_de "Dein Zuhause (Wiedereinstiegspunkt)"
    Target_ru_ru "Ваш дом (Точка возрождения)"
    Target_ko_kr "당신의 집 (리스폰 지점)"
@@ -10057,8 +10076,8 @@ StringTable {
   CustomStringTableItem "{5D346D5D199B4849}" {
    Id "OVT-Item_Weed_Description"
    Target_en_us "A quarter ounce of the finest sticky icky. Can be sold to civilians for a small profit."
-   Target_it_it "Un quarto di oncia della migliore erba appiccicosa. Può essere venduta ai civili per un piccolo profitto."
    Target_fr_fr "C'est de la bonne mais il faut pas y toucher. Peut être vendu aux civils pour gagner un peu d'argent"
+   Target_it_it "Un quarto di oncia della migliore erba appiccicosa. Può essere venduta ai civili per un piccolo profitto."
    Target_de_de "Eine Viertelunze vom feinsten klebrigen Gras. Kann mit kleinem Gewinn an Zivilisten verkauft werden."
    Target_ru_ru "Четверть унции высококласной травки. Может быть продан гражданским лицам с небольшой прибылью."
    Target_ko_kr "최고급 대마초 1/4온스. 민간인에게 팔아 약간의 수익을 올릴 수 있음."
@@ -10081,8 +10100,8 @@ StringTable {
   CustomStringTableItem "{5D346D5D0FC98EAB}" {
    Id "OVT-Item_Weed_Name"
    Target_en_us "Weed"
-   Target_it_it "Erba"
    Target_fr_fr "Weed"
+   Target_it_it "Erba"
    Target_de_de "Cannabis"
    Target_ru_ru "Травка"
    Target_ko_kr "대마초"
@@ -10148,8 +10167,8 @@ StringTable {
   CustomStringTableItem "{59AEEB5827181BD1}" {
    Id "OVT-Job_AddedWaypoint"
    Target_en_us "A waypoint marker has been added to your map"
-   Target_it_it "Un indicatore di waypoint è stato aggiunto alla tua mappa"
    Target_fr_fr "Un marqueur a été placé sur la carte"
+   Target_it_it "Un indicatore di waypoint è stato aggiunto alla tua mappa"
    Target_de_de "Deiner Karte wurde eine Wegpunktmarkierung hinzugefügt"
    Target_ru_ru "Маркер с маршрутной точкой добавлен на карту"
    Target_ko_kr "지도에 웨이포인트 마커가 추가되었습니다"
@@ -10214,8 +10233,8 @@ StringTable {
   CustomStringTableItem "{59AEEB5F91CFCA25}" {
    Id "OVT-Job_AssassinateTraitor"
    Target_en_us "Assassinate Traitor"
-   Target_it_it "Assassina il traditore"
    Target_fr_fr "Élimination de déserteur"
+   Target_it_it "Assassina il traditore"
    Target_de_de "Verräter ausschalten"
    Target_ru_ru "Уничтожить предателя"
    Target_ko_kr "배신자 제거"
@@ -10240,10 +10259,10 @@ StringTable {
    Target_en_us "A member of the resistance has defected and is being held in protective custody. We have tracked down their location to a house. "\
    ""\
    "Eliminate this traitor before they can reveal any information."
+   Target_fr_fr "Un membre de la résistance a déserté et est désormais sous haute protection. Nous l'avons repéré dans une planque. Éliminez le traitre avant qu'il ne puisse révéler quoi que ce soit."
    Target_it_it "Un membro della Resistenza ha disertato e si trova sotto custodia protettiva. Abbiamo individuato il luogo in cui è nascosto: una casa."\
    ""\
    "Elimina il traditore prima che possa rivelare informazioni."
-   Target_fr_fr "Un membre de la résistance a déserté et est désormais sous haute protection. Nous l'avons repéré dans une planque. Éliminez le traitre avant qu'il ne puisse révéler quoi que ce soit."
    Target_de_de "Ein Mitglied des Widerstands ist übergelaufen und befindet sich in Schutzhaft. Wir haben seinen Aufenthaltsort bis zu einem Haus zurückverfolgt."\
    ""\
    "Eliminiere diesen Verräter, bevor er irgendwelche Informationen preisgeben kann."
@@ -10276,8 +10295,8 @@ StringTable {
   CustomStringTableItem "{59B540560DE6D9B3}" {
    Id "OVT-Job_BaseRecon"
    Target_en_us "Reconnaissance"
-   Target_it_it "Ricognizione"
    Target_fr_fr "Reconnaissance"
+   Target_it_it "Ricognizione"
    Target_de_de "Aufklärung"
    Target_ru_ru "Разведка"
    Target_ko_kr "정찰"
@@ -10302,10 +10321,10 @@ StringTable {
    Target_en_us "Visit a nearby base to determine the strength of it's defenses. You will need to get within 100m of the base flag to get a good look at it."\
    ""\
    "Be careful not to get seen within the restricted area marked as red on your map or you will be shot at."
+   Target_fr_fr "Approchez vous d'une base pour en étudier l'importance de ses défenses. Vous devez vous trouvez à moins de 100 mètres de la base pour avoir un bon point de vue. Faites attention à ne pas vous faire repérer dans les zones interdites marquées en rouge sur la carte, au risque de vous faire tirer dessus"
    Target_it_it "Visita una base vicina per valutarne le difese. Dovrai avvicinarti a meno di 100 metri dalla bandiera della base per osservarle bene."\
    ""\
    "Fai attenzione a non farti vedere all'interno dell'area riservata (contrassegnata in rosso sulla mappa), altrimenti ti spareranno."
-   Target_fr_fr "Approchez vous d'une base pour en étudier l'importance de ses défenses. Vous devez vous trouvez à moins de 100 mètres de la base pour avoir un bon point de vue. Faites attention à ne pas vous faire repérer dans les zones interdites marquées en rouge sur la carte, au risque de vous faire tirer dessus"
    Target_de_de "Besuche eine Basis in der Nähe, um die Stärke ihrer Verteidigung festzustellen. Du musst bis auf 100 m an die Flagge der Basis herankommen, um sie gut auskundschaften zu können."\
    ""\
    "Achte darauf, im auf deiner Karte rot markierten Sperrgebiet nicht gesehen zu werden, sonst wird auf dich geschossen."
@@ -10338,8 +10357,8 @@ StringTable {
   CustomStringTableItem "{5D5080D0358FFA9F}" {
    Id "OVT-Job_FindGunDealer"
    Target_en_us "Tutorial - Find a gun dealer"
-   Target_it_it "Tutorial - Trova un venditore di armi"
    Target_fr_fr "Trouver un marchant d'armes"
+   Target_it_it "Tutorial - Trova un venditore di armi"
    Target_de_de "Tutorial – Einen Waffenhändler finden"
    Target_ru_ru "Найти торговца оружием"
    Target_ko_kr "튜토리얼 - 총기 딜러 찾기"
@@ -10364,10 +10383,10 @@ StringTable {
    Target_en_us "Gun dealers are located in the larger towns and cities. They are independant merchants who stock weapons and other illegal items. Each gun dealer will sell all ammunition plus one random gun of each type, so try different towns to find the weapon you're looking for."\
    ""\
    "Visit the nearest gun dealer to see what items they have available."
+   Target_fr_fr "Les marchants d'armes peuvent être trouvés dans les grands bourgs & villes. Ce sont des marchants indépendants qui stockent des armes et d'autres objets illégaux. Rendez vous au plus proche pour voir quels objets sont disponibles."
    Target_it_it "I venditori di armi si trovano nelle città e nei centri abitati più grandi. Sono commercianti indipendenti che trattano armi e altri articoli illegali. Ogni venditore offre tutte le munizioni e un'arma casuale per ogni categoria; prova quindi a visitare diverse città per trovare l'arma che cerchi."\
    ""\
    "Visita il venditore di armi più vicino per vedere quali articoli ha in assortimento."
-   Target_fr_fr "Les marchants d'armes peuvent être trouvés dans les grands bourgs & villes. Ce sont des marchants indépendants qui stockent des armes et d'autres objets illégaux. Rendez vous au plus proche pour voir quels objets sont disponibles."
    Target_de_de "Waffenhändler befinden sich in größeren Ortschaften und Städten. Sie sind unabhängige Händler, die Waffen und andere illegale Gegenstände auf Lager haben. Jeder Waffenhändler verkauft sämtliche Munition sowie eine zufällige Waffe jeder Art. Probiere daher verschiedene Städte aus, um die gesuchte Waffe zu finden."\
    ""\
    "Besuche den nächstgelegenen Waffenhändler und sieh dir an, welche Gegenstände er anbietet."
@@ -10709,8 +10728,8 @@ StringTable {
   CustomStringTableItem "{59B518B28C1095CF}" {
    Id "OVT-Job_RaiseSupport"
    Target_en_us "Tutorial - Raise Support"
-   Target_it_it "Tutorial - Ottieni sostegno"
    Target_fr_fr "Augmenter le soutien"
+   Target_it_it "Tutorial - Ottieni sostegno"
    Target_de_de "Tutorial – Unterstützung erhöhen"
    Target_ru_ru "Увеличить поддержку"
    Target_ko_kr "튜토리얼 - 지원 강화하기"
@@ -10737,12 +10756,12 @@ StringTable {
    "Raise support by placing posters in and around the town using the \"Place\" option in the Overthrow menu and waiting for them to catch the eye of 15% of the town's citizens. You can also deliver medical supplies like Bandages and Aspirin bottles by placing them in your car and using the \"Deliver Medical Supplies\" option in your trunk."\
    ""\
    "Check your progress using the \"Map Info\" menu option. You can raise support in any village, town or city without needing a job to do it."
+   Target_fr_fr "Les partisans représentent une importante source de revenus pour la résistance. Ralliez les à votre cause en collant des affiches dans et autour de la commune en utilisant l'option \"Placer\" du menu, puis attendez qu'au moins 15% y prêtent attention. Vous pouvez également leur fournir du matériel médical comme des bandages ou de l'insuline pour accélérer leur ralliement."
    Target_it_it "I sostenitori in questa città forniranno alla Resistenza una fonte di reddito fondamentale sotto forma di donazioni."\
    ""\
    "Aumenta il sostegno affiggendo manifesti in città e nei dintorni tramite l'opzione \"Posiziona\" del menu Overthrow e attendendo che attirino l'attenzione del 15% dei cittadini. Puoi anche consegnare forniture mediche, come bende e flaconi di aspirina, caricandole in auto e utilizzando l'opzione \"Consegna forniture mediche\" dal menu del bagagliaio."\
    ""\
    "Controlla i tuoi progressi tramite l'opzione \"Info mappa\" del menu. Puoi aumentare il sostegno in qualsiasi villaggio o città senza bisogno di un incarico specifico."
-   Target_fr_fr "Les partisans représentent une importante source de revenus pour la résistance. Ralliez les à votre cause en collant des affiches dans et autour de la commune en utilisant l'option \"Placer\" du menu, puis attendez qu'au moins 15% y prêtent attention. Vous pouvez également leur fournir du matériel médical comme des bandages ou de l'insuline pour accélérer leur ralliement."
    Target_de_de "Unterstützer in dieser Stadt liefern dem Widerstand in Form von Spenden eine dringend benötigte Einnahmequelle."\
    ""\
    "Erhöhe die Unterstützung, indem du mit der Option \"Platzieren\" im Overthrow-Menü Plakate in und um die Stadt platzierst und wartest, bis sie 15 % der Einwohner ins Auge fallen. Du kannst außerdem medizinische Vorräte wie Verbände und Aspirinflaschen ausliefern, indem du sie in dein Auto legst und im Kofferraum die Option \"Deliver Medical Supplies\" verwendest."\
@@ -10881,8 +10900,8 @@ StringTable {
   CustomStringTableItem "{5D5080D395D01E22}" {
    Id "OVT-Jobs_Accept"
    Target_en_us "Accept"
-   Target_it_it "Accetta"
    Target_fr_fr "Accepter"
+   Target_it_it "Accetta"
    Target_de_de "Annehmen"
    Target_ru_ru "Принять"
    Target_ko_kr "수락하기"
@@ -10905,8 +10924,8 @@ StringTable {
   CustomStringTableItem "{59AEEB5A77561A7F}" {
    Id "OVT-Jobs_Completed"
    Target_en_us "Job Completed"
-   Target_it_it "Missione completata"
    Target_fr_fr "Accompli"
+   Target_it_it "Missione completata"
    Target_de_de "Auftrag abgeschlossen"
    Target_ru_ru "Работа выполнена"
    Target_ko_kr "임무 완료"
@@ -10929,8 +10948,8 @@ StringTable {
   CustomStringTableItem "{5D5080D2669C4FC6}" {
    Id "OVT-Jobs_Decline"
    Target_en_us "Decline"
-   Target_it_it "Rifiuta"
    Target_fr_fr "Refuser"
+   Target_it_it "Rifiuta"
    Target_de_de "Ablehnen"
    Target_ru_ru "Отказаться"
    Target_ko_kr "거절하기"
@@ -10953,8 +10972,8 @@ StringTable {
   CustomStringTableItem "{59AEEB58378EB9DE}" {
    Id "OVT-Jobs_NoJobs"
    Target_en_us "There are currently no jobs available"
-   Target_it_it "Al momento non ci sono missioni disponibili"
    Target_fr_fr "Il n'y a actuellement aucun Jobs disponible"
+   Target_it_it "Al momento non ci sono missioni disponibili"
    Target_de_de "Derzeit sind keine Aufträge verfügbar"
    Target_ru_ru "На текущий момент нет доступной работы"
    Target_ko_kr "현재 이용 가능한 임무가 없습니다"
@@ -10974,11 +10993,30 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{3FE075E205F00400}" {
+   Id "OVT-Jobs_NoMatches"
+   Target_en_us "No jobs match your search."
+   Target_it_it "Nessun incarico corrisponde alla ricerca."
+   Target_de_de "Keine Stellenangebote entsprechen Ihrer Suche."
+   Comment "Shown in the Jobs menu when the search text or town filter hides every job in the list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1785656334
+   Author "Overthrow"
+   LastChanged "lemmi"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59A8D254C85421A6}" {
    Id "OVT-Jobs_ShowOnMap"
    Target_en_us "Show On Map"
-   Target_it_it "Mostra sulla mappa"
    Target_fr_fr "Montrer sur la carte"
+   Target_it_it "Mostra sulla mappa"
    Target_de_de "Auf Karte anzeigen"
    Target_ru_ru "Показать на карте"
    Target_ko_kr "지도에 표시하기"
@@ -10995,6 +11033,25 @@ StringTable {
    Modified 1706584704
    Author "Aaron Static"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{00FB78163A7D6ED9}" {
+   Id "OVT-JobsMenu_SearchLabel"
+   Target_en_us "Search"
+   Target_it_it "Cerca"
+   Target_de_de "Suche"
+   Comment "Label on the Jobs menu search box. The player types part of a job title here to filter the job list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1785656343
+   Author "Overthrow"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11519,8 +11576,8 @@ StringTable {
   CustomStringTableItem "{59A2BD308A7926FA}" {
    Id "OVT-LoadStorage"
    Target_en_us "Load storage into vehicle"
-   Target_it_it "Carica deposito sul veicolo"
    Target_fr_fr "Charger dans le véhicule"
+   Target_it_it "Carica deposito sul veicolo"
    Target_de_de "In Fahrzeug laden"
    Target_ru_ru "Загрузить в транспорт"
    Target_ko_kr "차량에 탑승하기"
@@ -11612,8 +11669,8 @@ StringTable {
   CustomStringTableItem "{598AB67692AD5DBB}" {
    Id "OVT-MainMenu_Build"
    Target_en_us "Build"
-   Target_it_it "Costruisci"
    Target_fr_fr "Construire"
+   Target_it_it "Costruisci"
    Target_de_de "Bauen"
    Target_ru_ru "Строительство"
    Target_ko_kr "건설"
@@ -11636,8 +11693,8 @@ StringTable {
   CustomStringTableItem "{598AB6769C0D5394}" {
    Id "OVT-MainMenu_CharacterSheet"
    Target_en_us "Character Sheet"
-   Target_it_it "Scheda personaggio"
    Target_fr_fr "Arbre de compétences"
+   Target_it_it "Scheda personaggio"
    Target_de_de "Charakterbogen"
    Target_ru_ru "Прокачка персонажа"
    Target_ko_kr "캐릭터 능력치"
@@ -11660,8 +11717,8 @@ StringTable {
   CustomStringTableItem "{598AB6768B0BDF7E}" {
    Id "OVT-MainMenu_FastTravel"
    Target_en_us "Fast Travel"
-   Target_it_it "Viaggio rapido"
    Target_fr_fr "Déplacement Rapide"
+   Target_it_it "Viaggio rapido"
    Target_de_de "Schnellreise"
    Target_ru_ru "Быстрое перемещение"
    Target_ko_kr "빠른 이동"
@@ -11684,8 +11741,8 @@ StringTable {
   CustomStringTableItem "{59A8D26B9BC69C64}" {
    Id "OVT-MainMenu_Jobs"
    Target_en_us "Jobs"
-   Target_it_it "Incarichi"
    Target_fr_fr "Jobs"
+   Target_it_it "Incarichi"
    Target_de_de "Aufträge"
    Target_ru_ru "Работа"
    Target_ko_kr "임무들"
@@ -11728,8 +11785,8 @@ StringTable {
   CustomStringTableItem "{598AB6769FBB6531}" {
    Id "OVT-MainMenu_ManageRecruits"
    Target_en_us "Manage Recruits"
-   Target_it_it "Gestisci reclute"
    Target_fr_fr "Gérer les recrues"
+   Target_it_it "Gestisci reclute"
    Target_de_de "Rekruten verwalten"
    Target_ru_ru "Управление бойцами"
    Target_ko_kr "전투원 관리"
@@ -11777,8 +11834,8 @@ StringTable {
   CustomStringTableItem "{598AB6769A9A471C}" {
    Id "OVT-MainMenu_Options"
    Target_en_us "Options"
-   Target_it_it "Opzioni"
    Target_fr_fr "Options"
+   Target_it_it "Opzioni"
    Target_de_de "Optionen"
    Target_ru_ru "Опции"
    Target_ko_kr "옵션"
@@ -11801,8 +11858,8 @@ StringTable {
   CustomStringTableItem "{598AB67694121E5D}" {
    Id "OVT-MainMenu_Place"
    Target_en_us "Place"
-   Target_it_it "Posiziona"
    Target_fr_fr "Placer"
+   Target_it_it "Posiziona"
    Target_de_de "Platzieren"
    Target_ru_ru "Разместить"
    Target_ko_kr "배치하기"
@@ -11825,8 +11882,8 @@ StringTable {
   CustomStringTableItem "{5D305CF3CF05C921}" {
    Id "OVT-MainMenu_RealEstate"
    Target_en_us "Real Estate"
-   Target_it_it "Immobili"
    Target_fr_fr "Immobilier"
+   Target_it_it "Immobili"
    Target_de_de "Immobilien"
    Target_ru_ru "Недвижимость"
    Target_ko_kr "부동산"
@@ -11849,8 +11906,8 @@ StringTable {
   CustomStringTableItem "{598AB676970E6911}" {
    Id "OVT-MainMenu_Resistance"
    Target_en_us "Resistance"
-   Target_it_it "Resistenza"
    Target_fr_fr "Résistance"
+   Target_it_it "Resistenza"
    Target_de_de "Widerstand"
    Target_ru_ru "Сопротивление"
    Target_ko_kr "저항군"
@@ -11936,8 +11993,8 @@ StringTable {
   CustomStringTableItem "{59C84C7D5793F882}" {
    Id "OVT-MakeOfficer"
    Target_en_us "Make Officer"
-   Target_it_it "Promuovi a ufficiale"
    Target_fr_fr "Promouvoir Officier"
+   Target_it_it "Promuovi a ufficiale"
    Target_de_de "Zum Offizier ernennen"
    Target_ru_ru "Сделать офицером"
    Target_ko_kr "장교로 임명하기"
@@ -11971,8 +12028,8 @@ StringTable {
   CustomStringTableItem "{5D582605F2DE0E0B}" {
    Id "OVT-ManageFOB"
    Target_en_us "Manage FOB"
-   Target_it_it "Gestisci FOB"
    Target_fr_fr "Gérer Avant Poste"
+   Target_it_it "Gestisci FOB"
    Target_de_de "FOB verwalten"
    Target_ru_ru "Управление ПОБ"
    Target_ko_kr "FOB 관리"
@@ -12015,8 +12072,8 @@ StringTable {
   CustomStringTableItem "{59CF196E2474961C}" {
    Id "OVT-ManageVehicle"
    Target_en_us "Manage Vehicle"
-   Target_it_it "Gestisci veicolo"
    Target_fr_fr "Gérer Véhicule"
+   Target_it_it "Gestisci veicolo"
    Target_de_de "Fahrzeug verwalten"
    Target_ru_ru "Управление техникой"
    Target_ko_kr "차량 관리"
@@ -13391,8 +13448,8 @@ StringTable {
   CustomStringTableItem "{59A6ED9A0E302C5E}" {
    Id "OVT-MedicalSupplies"
    Target_en_us "Medical Supplies"
-   Target_it_it "Forniture mediche"
    Target_fr_fr "Matériel Médical"
+   Target_it_it "Forniture mediche"
    Target_de_de "Medizinische Vorräte"
    Target_ru_ru "Медикаменты"
    Target_ko_kr "의료 물품"
@@ -13415,8 +13472,8 @@ StringTable {
   CustomStringTableItem "{59A6ED9645E233BB}" {
    Id "OVT-MedicalSupplies_TooFar"
    Target_en_us "You are too far from any towns to deliver medical supplies"
-   Target_it_it "Sei troppo lontano da qualsiasi città per consegnare forniture mediche."
    Target_fr_fr "Vous êtes trop loin d'une commune pour livrer le matériel médical"
+   Target_it_it "Sei troppo lontano da qualsiasi città per consegnare forniture mediche."
    Target_de_de "Du bist zu weit von einer Stadt entfernt, um medizinische Vorräte auszuliefern"
    Target_ru_ru "Вы слишком далеко от насленого пункта, чтобы доставить медикаменты"
    Target_ko_kr "마을에서 너무 멀리 떨어져 있어 의료 물품을 전달할 수 없습니다."
@@ -13439,8 +13496,8 @@ StringTable {
   CustomStringTableItem "{59A6ED9BB773C165}" {
    Id "OVT-MedicalSuppliesDelivered"
    Target_en_us "Medical supplies delivered to the value of"
-   Target_it_it "Forniture mediche consegnate per un valore di"
    Target_fr_fr "Matériel Médical livré pour "
+   Target_it_it "Forniture mediche consegnate per un valore di"
    Target_de_de "Medizinische Vorräte im Wert von geliefert:"
    Target_ru_ru "Медикаменты доставлены на сумму"
    Target_ko_kr "전달된 의료 물품의 가치"
@@ -13506,8 +13563,8 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E801}" {
    Id "OVT-Modifier_BlackMarket"
    Target_en_us "Black Market Activity"
-   Target_it_it "Attività del mercato nero"
    Target_fr_fr "Activité du Marché Noir"
+   Target_it_it "Attività del mercato nero"
    Target_de_de "Schwarzmarktaktivität"
    Target_ru_ru "Активность черного рынка"
    Target_zh_cn "黑市活动"
@@ -13529,8 +13586,8 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E7FE}" {
    Id "OVT-Modifier_CivilianDeath"
    Target_en_us "Civilian Deaths"
-   Target_it_it "Morti tra i civili"
    Target_fr_fr "Morts Civiles"
+   Target_it_it "Morti tra i civili"
    Target_de_de "Tote Zivilisten"
    Target_ru_ru "Смерти гражданских"
    Target_zh_cn "平民死亡"
@@ -13552,8 +13609,8 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E802}" {
    Id "OVT-Modifier_GrowingDiscontent"
    Target_en_us "Growing Discontent"
-   Target_it_it "Malcontento crescente"
    Target_fr_fr "Mécontentement Croissant"
+   Target_it_it "Malcontento crescente"
    Target_de_de "Wachsende Unzufriedenheit"
    Target_ru_ru "Растущее недовольство"
    Target_zh_cn "日益不满"
@@ -13618,8 +13675,8 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E7FF}" {
    Id "OVT-Modifier_OccupyingFactionDeath"
    Target_en_us "Occupier Deaths"
-   Target_it_it "Morti tra gli occupanti"
    Target_fr_fr "Morts des Occupants"
+   Target_it_it "Morti tra gli occupanti"
    Target_de_de "Tote Besatzer"
    Target_ru_ru "Смерти оккупантов"
    Target_zh_cn "占领军死亡"
@@ -13662,8 +13719,8 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E804}" {
    Id "OVT-Modifier_PatrolHarassment"
    Target_en_us "Patrol Harassment"
-   Target_it_it "Disturbo alle pattuglie"
    Target_fr_fr "Harcèlement de Patrouille"
+   Target_it_it "Disturbo alle pattuglie"
    Target_de_de "Belästigung von Patrouillen"
    Target_ru_ru "Преследование патрулем"
    Target_zh_cn "巡逻骚扰"
@@ -13706,8 +13763,8 @@ StringTable {
   CustomStringTableItem "{5D64799EE068B0DB}" {
    Id "OVT-Modifier_RecentBattle"
    Target_en_us "Recent Battle"
-   Target_it_it "Battaglia recente"
    Target_fr_fr "Batailles Récentes"
+   Target_it_it "Battaglia recente"
    Target_de_de "Kürzliche Schlacht"
    Target_ru_ru "Недавние бои"
    Target_ko_kr "최근 전투"
@@ -13730,8 +13787,8 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E800}" {
    Id "OVT-Modifier_ResistanceVictory"
    Target_en_us "Resistance Victory"
-   Target_it_it "Vittoria della Resistenza"
    Target_fr_fr "Victoire de la Résistance"
+   Target_it_it "Vittoria della Resistenza"
    Target_de_de "Sieg des Widerstands"
    Target_ru_ru "Победа сопротивления"
    Target_zh_cn "抵抗胜利"
@@ -13753,8 +13810,8 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E803}" {
    Id "OVT-Modifier_RevolutionaryMomentum"
    Target_en_us "Revolutionary Momentum"
-   Target_it_it "Slancio rivoluzionario"
    Target_fr_fr "Élan Révolutionnaire"
+   Target_it_it "Slancio rivoluzionario"
    Target_de_de "Revolutionärer Schwung"
    Target_ru_ru "Революционный импульс"
    Target_zh_cn "革命势头"
@@ -13839,6 +13896,7 @@ StringTable {
    Id "OVT-Msg-AdminSkillGranted"
    Target_en_us "Admin: '%1' set to level %2"
    Target_it_it "Admin: '%1' impostato al livello %2"
+   Target_de_de "Admin: '%1' auf Stufe %2 gesetzt"
    Comment "Confirmation to a server admin who used the /give-skill chat command - %1 is the skill's key (e.g. Trade), %2 is the level it was set to"
    DevNote ""
    Repro ""
@@ -13847,9 +13905,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1788930000
+   Modified 1785656268
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -13879,8 +13937,8 @@ StringTable {
   CustomStringTableItem "{59B4F0A361F5ADF0}" {
    Id "OVT-Msg-BaseControlledOccupying"
    Target_en_us "The resistance has lost control of %1 base"
-   Target_it_it "La Resistenza ha perso il controllo della base %1"
    Target_fr_fr "La résistance a perdu le contrôle d'une base"
+   Target_it_it "La Resistenza ha perso il controllo della base %1"
    Target_de_de "Der Widerstand hat die Kontrolle über die Basis %1 verloren"
    Target_ru_ru "Сопротивление утратило контроль над базой %1"
    Target_ko_kr "저항군이 %1 기지의 통제권을 상실했습니다."
@@ -13903,8 +13961,8 @@ StringTable {
   CustomStringTableItem "{59B4F0A294E1135C}" {
    Id "OVT-Msg-BaseControlledResistance"
    Target_en_us "The resistance has captured %1 base"
-   Target_it_it "La Resistenza ha conquistato la base %1"
    Target_fr_fr "La résistance a capturé une base ennemie"
+   Target_it_it "La Resistenza ha conquistato la base %1"
    Target_de_de "Der Widerstand hat die Basis %1 erobert"
    Target_ru_ru "Сопротивление взяло под контроль базу  %1"
    Target_ko_kr "저항군이 %1 기지를 점령했습니다."
@@ -13947,8 +14005,8 @@ StringTable {
   CustomStringTableItem "{5D64799026B5CA0A}" {
    Id "OVT-Msg-CityBattle"
    Target_en_us "The battle for the city of %1 will begin shortly"
-   Target_it_it "La battaglia per la città di %1 inizierà a breve"
    Target_fr_fr "La bataille pour le contrôle de la ville va bientôt commencer"
+   Target_it_it "La battaglia per la città di %1 inizierà a breve"
    Target_de_de "Die Schlacht um die Stadt %1 beginnt in Kürze"
    Target_ru_ru "Бой за город %1 скоро начнётся"
    Target_ko_kr "%1 도시를 위한 전투가 곧 시작됩니다."
@@ -13971,8 +14029,8 @@ StringTable {
   CustomStringTableItem "{5D647993297FAA09}" {
    Id "OVT-Msg-CityControlledOccupying"
    Target_en_us "The resistance has lost control of the city of %1"
-   Target_it_it "La Resistenza ha perso il controllo della città di %1"
    Target_fr_fr "La résistance a perdu le contrôle de la ville"
+   Target_it_it "La Resistenza ha perso il controllo della città di %1"
    Target_de_de "Der Widerstand hat die Kontrolle über die Stadt %1 verloren"
    Target_ru_ru "Сопротивление потеряло контроль над городом %1"
    Target_ko_kr "저항군이 %1 도시의 통제권을 잃었습니다."
@@ -13995,8 +14053,8 @@ StringTable {
   CustomStringTableItem "{5D6479933F0A23F6}" {
    Id "OVT-Msg-CityControlledResistance"
    Target_en_us "The city of %1 is now under control by the resistance"
-   Target_it_it "La città di %1 è ora sotto il controllo della Resistenza"
    Target_fr_fr "La ville est maintenant sous contrôle de la résistance"
+   Target_it_it "La città di %1 è ora sotto il controllo della Resistenza"
    Target_de_de "Die Stadt %1 steht jetzt unter der Kontrolle des Widerstands"
    Target_ru_ru "Город %1 теперь контроллируется сопротивлением"
    Target_ko_kr "%1 도시는 이제 저항군의 통제 하에 있습니다."
@@ -14112,8 +14170,8 @@ StringTable {
   CustomStringTableItem "{59A49A822C192F63}" {
    Id "OVT-Msg-HasPlacedFOB"
    Target_en_us "%1 has placed a new FOB near %2. It is now available for fast travel and more"
-   Target_it_it "%1 ha piazzato una nuova FOB vicino a %2. Ora è disponibile per il viaggio rapido e altro ancora"
    Target_fr_fr "a placé un nouvel avant poste. Vous pouvez désormais y faire un déplacement rapide"
+   Target_it_it "%1 ha piazzato una nuova FOB vicino a %2. Ora è disponibile per il viaggio rapido e altro ancora"
    Target_de_de "%1 hat einen neuen FOB in der Nähe von %2 errichtet. Er steht jetzt unter anderem für Schnellreisen zur Verfügung"
    Target_ru_ru "%1 разместил ПОБ вблизи %2. Точка доступна для быстрого перемещения"
    Target_ko_kr "%1은 %2 근처에 새로운 FOB를 설치했습니다. 이제 빠른 이동과 더 많은 기능을 사용할 수 있습니다."
@@ -14402,8 +14460,8 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391710}" {
    Id "OVT-Msg-LoadoutApplied"
    Target_en_us "Loadout '%1' applied - %2 items equipped"
-   Target_it_it "Equipaggiamento predefinito '%1' applicato: %2 oggetti equipaggiati"
    Target_fr_fr "Équipement '%1' appliqué - %2 objets équipés"
+   Target_it_it "Equipaggiamento predefinito '%1' applicato: %2 oggetti equipaggiati"
    Target_de_de "Ausrüstung '%1' angewendet – %2 Gegenstände ausgerüstet"
    Target_ru_ru "Комплект '%1' применён — установлено %2 предметов"
    Target_zh_cn "装备'%1'已应用 - %2个物品已装备"
@@ -14425,8 +14483,8 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391711}" {
    Id "OVT-Msg-LoadoutAppliedPartial"
    Target_en_us "Loadout '%1' partially applied - %2 of %3 items equipped"
-   Target_it_it "Equipaggiamento predefinito '%1' applicato parzialmente: %2 oggetti su %3 equipaggiati"
    Target_fr_fr "Équipement '%1' partiellement appliqué - %2 sur %3 objets équipés"
+   Target_it_it "Equipaggiamento predefinito '%1' applicato parzialmente: %2 oggetti su %3 equipaggiati"
    Target_de_de "Ausrüstung '%1' teilweise angewendet – %2 von %3 Gegenständen ausgerüstet"
    Target_ru_ru "Комплект '%1' частично применён — установлено %2 из %3 предметов"
    Target_zh_cn "装备'%1'部分应用 - %2/%3个物品已装备"
@@ -14448,8 +14506,8 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391712}" {
    Id "OVT-Msg-LoadoutAppliedToRecruit"
    Target_en_us "Loadout '%1' applied to %2 - %3 items equipped"
-   Target_it_it "Equipaggiamento predefinito '%1' applicato a %2: %3 oggetti equipaggiati"
    Target_fr_fr "Équipement '%1' appliqué à %2 - %3 objets équipés"
+   Target_it_it "Equipaggiamento predefinito '%1' applicato a %2: %3 oggetti equipaggiati"
    Target_de_de "Ausrüstung '%1' auf %2 angewendet – %3 Gegenstände ausgerüstet"
    Target_ru_ru "Комплект '%1' применён к %2 — установлено %3 предметов"
    Target_zh_cn "装备'%1'已应用到%2 - %3个物品已装备"
@@ -14471,8 +14529,8 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391713}" {
    Id "OVT-Msg-LoadoutAppliedToRecruits"
    Target_en_us "Loadout '%1' applied to %2 recruits"
-   Target_it_it "Equipaggiamento predefinito '%1' applicato a %2 reclute"
    Target_fr_fr "Équipement '%1' appliqué à %2 recrues"
+   Target_it_it "Equipaggiamento predefinito '%1' applicato a %2 reclute"
    Target_de_de "Ausrüstung '%1' auf %2 Rekruten angewendet"
    Target_ru_ru "Комплект '%1' применён к %2 рекрутам"
    Target_zh_cn "装备'%1'已应用到%2名新兵"
@@ -14494,8 +14552,8 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391714}" {
    Id "OVT-Msg-LoadoutDeleted"
    Target_en_us "Loadout '%1' deleted"
-   Target_it_it "Equipaggiamento predefinito '%1' eliminato"
    Target_fr_fr "Équipement '%1' supprimé"
+   Target_it_it "Equipaggiamento predefinito '%1' eliminato"
    Target_de_de "Ausrüstung '%1' gelöscht"
    Target_ru_ru "Комплект '%1' удалён"
    Target_zh_cn "装备'%1'已删除"
@@ -14517,8 +14575,8 @@ StringTable {
   CustomStringTableItem "{59A49A823A9D330A}" {
    Id "OVT-Msg-NewCamp"
    Target_en_us "New FOB"
-   Target_it_it "Nuova FOB"
    Target_fr_fr "Nouvel avant poste"
+   Target_it_it "Nuova FOB"
    Target_de_de "Neuer FOB"
    Target_ru_ru "Новая ПОБ"
    Target_ko_kr "새로운 FOB"
@@ -14883,8 +14941,8 @@ StringTable {
   CustomStringTableItem "{5D6051C94F256E7F}" {
    Id "OVT-Msg-TowerControlledResistance"
    Target_en_us "The resistance has captured an enemy radio tower near %1"
-   Target_it_it "La Resistenza ha conquistato una torre radio nemica vicino a %1"
    Target_fr_fr "La résistance a capturé la tour radio ennemie"
+   Target_it_it "La Resistenza ha conquistato una torre radio nemica vicino a %1"
    Target_de_de "Der Widerstand hat einen feindlichen Funkturm in der Nähe von %1 erobert"
    Target_ru_ru "Сопротивление взяло под контроль радиовышку вблизи %1"
    Target_ko_kr "저항군이 %1 근처 적 무전탑을 점령했습니다"
@@ -14907,8 +14965,8 @@ StringTable {
   CustomStringTableItem "{5D647993F9896F6F}" {
    Id "OVT-Msg-TownBattle"
    Target_en_us "The battle for the town of %1 will begin shortly"
-   Target_it_it "La battaglia per la città di %1 inizierà a breve"
    Target_fr_fr "La bataille pour le contrôle du bourg va bientôt commencer"
+   Target_it_it "La battaglia per la città di %1 inizierà a breve"
    Target_de_de "Die Schlacht um die Stadt %1 beginnt in Kürze"
    Target_ru_ru "Бой за город %1 скоро начнется"
    Target_ko_kr "%1 마을을 위한 전투가 곧 시작됩니다"
@@ -14931,8 +14989,8 @@ StringTable {
   CustomStringTableItem "{5D6479932650745D}" {
    Id "OVT-Msg-TownControlledOccupying"
    Target_en_us "The resistance has lost control of the town of %1"
-   Target_it_it "La Resistenza ha perso il controllo della città di %1"
    Target_fr_fr "La résistance ne contrôle plus le bourg dû au manque de soutien des habitants"
+   Target_it_it "La Resistenza ha perso il controllo della città di %1"
    Target_de_de "Der Widerstand hat die Kontrolle über die Stadt %1 verloren"
    Target_ru_ru "Сопротивление потеряло контроль над городом %1"
    Target_ko_kr "저항군이 %1 마을에 대한 통제권을 잃었습니다"
@@ -14955,8 +15013,8 @@ StringTable {
   CustomStringTableItem "{5D6479934B14F461}" {
    Id "OVT-Msg-TownControlledResistance"
    Target_en_us "The town of %1 is now under control by the resistance"
-   Target_it_it "La città di %1 è ora sotto il controllo della Resistenza"
    Target_fr_fr "Le bourg est maintenant sous le contrôle de la résistance"
+   Target_it_it "La città di %1 è ora sotto il controllo della Resistenza"
    Target_de_de "Die Stadt %1 steht jetzt unter der Kontrolle des Widerstands"
    Target_ru_ru "Город %1 теперь под контролем сопротивления"
    Target_ko_kr "%1 마을이 이제 저항군의 통제 하에 있습니다"
@@ -14979,8 +15037,8 @@ StringTable {
   CustomStringTableItem "{59A49AC5C2FC26C2}" {
    Id "OVT-Msg-VillageControlledOccupying"
    Target_en_us "Resistance has lost control of the village of %1 due to low support"
-   Target_it_it "La Resistenza ha perso il controllo del villaggio di %1 a causa dello scarso sostegno"
    Target_fr_fr "La résistance ne contrôle plus le village dû au manque de soutien des habitants"
+   Target_it_it "La Resistenza ha perso il controllo del villaggio di %1 a causa dello scarso sostegno"
    Target_de_de "Der Widerstand hat aufgrund geringer Unterstützung die Kontrolle über das Dorf %1 verloren"
    Target_ru_ru "Сопротивление утратило контроль над населенным пунктом %1 в следствии низкой поддержки населением"
    Target_ko_kr "지원 부족으로 저항군이 %1 마을에 대한 통제권을 잃었습니다"
@@ -15003,8 +15061,8 @@ StringTable {
   CustomStringTableItem "{59A49AC9A028CADB}" {
    Id "OVT-Msg-VillageControlledResistance"
    Target_en_us "The village of %1 is now under control by the resistance due to overwhelming support"
-   Target_it_it "Il villaggio di %1 è ora sotto il controllo della Resistenza grazie a un sostegno schiacciante"
    Target_fr_fr "Le village est maintenant sous le contrôle de la résistance en raison d'un soutien écrasant"
+   Target_it_it "Il villaggio di %1 è ora sotto il controllo della Resistenza grazie a un sostegno schiacciante"
    Target_de_de "Das Dorf %1 steht aufgrund überwältigender Unterstützung jetzt unter der Kontrolle des Widerstands"
    Target_ru_ru "Населенный пункт %1 теперь находится под контролем сопротивления из-за подавляющей поддержки"\
    "населением"
@@ -15256,8 +15314,8 @@ StringTable {
   CustomStringTableItem "{599B1780E41380D7}" {
    Id "OVT-MustBeDriver"
    Target_en_us "You must be the driver of the vehicle to fast travel all occupants"
-   Target_it_it "Devi essere alla guida del veicolo per effettuare il viaggio rapido con tutti gli occupanti"
    Target_fr_fr "Vous devez être le conducteur pour effectuer le déplacement rapide avec tous les passagers"
+   Target_it_it "Devi essere alla guida del veicolo per effettuare il viaggio rapido con tutti gli occupanti"
    Target_de_de "Du musst der Fahrer des Fahrzeugs sein, um alle Insassen per Schnellreise mitzunehmen"
    Target_ru_ru "Вы должны быть водителем транспортного средства, чтобы быстро перевезти всех пассажиров"
    Target_ko_kr "모든 탑승자를 빠른 이동시키려면 차량의 운전자가 되어야 합니다"
@@ -15280,8 +15338,8 @@ StringTable {
   CustomStringTableItem "{59B518AA296EFB7F}" {
    Id "OVT-MustBeNearTown"
    Target_en_us "This item must be placed inside a town to have any effect"
-   Target_it_it "Questo oggetto deve essere piazzato all'interno di una città per avere effetto"
    Target_fr_fr "L'objet doit être placé dans une commune pour avoir un effet"
+   Target_it_it "Questo oggetto deve essere piazzato all'interno di una città per avere effetto"
    Target_de_de "Dieser Gegenstand muss innerhalb einer Stadt platziert werden, um eine Wirkung zu haben"
    Target_ru_ru "Этот предмет должен быть помещен внутри города, чтобы иметь какой-либо эффект"
    Target_ko_kr "이 아이템이 효과를 발휘하려면 반드시 마을 내부에 설치해야 합니다"
@@ -15304,8 +15362,8 @@ StringTable {
   CustomStringTableItem "{5D5C558A94391828}" {
    Id "OVT-MustBeOfficer"
    Target_en_us "You must be an officer to do that"
-   Target_it_it "Devi essere un ufficiale per farlo"
    Target_fr_fr "Vous devez être officier pour effectuer cela"
+   Target_it_it "Devi essere un ufficiale per farlo"
    Target_de_de "Du musst Offizier sein, um das zu tun"
    Target_ru_ru "Вы должны быть офицером, чтобы сделать это"
    Target_ko_kr "그 작업을 하기위해선 장교여야 합니다"
@@ -15338,8 +15396,8 @@ StringTable {
   CustomStringTableItem "{59A6ED92C4FDB9FD}" {
    Id "OVT-MustExitVehicle"
    Target_en_us "You must exit your vehicle first"
-   Target_it_it "Devi prima uscire dal veicolo"
    Target_fr_fr "Vous devez d'abord sortir du véhicule"
+   Target_it_it "Devi prima uscire dal veicolo"
    Target_de_de "Du musst zuerst dein Fahrzeug verlassen"
    Target_ru_ru "Сначало вы должны выйти из автомобиля."
    Target_ko_kr "먼저 차량에서 내려야 합니다"
@@ -15362,8 +15420,8 @@ StringTable {
   CustomStringTableItem "{59DA66363F3C1321}" {
    Id "OVT-MustHaveMap"
    Target_en_us "You must have a map equipped"
-   Target_it_it "Devi avere una mappa equipaggiata"
    Target_fr_fr "Il vous faut une carte"
+   Target_it_it "Devi avere una mappa equipaggiata"
    Target_de_de "Du musst eine Karte ausgerüstet haben"
    Target_ru_ru "Вы должны иметь при себе карту"
    Target_ko_kr "지도를 착용하고 있어야 합니다"
@@ -15409,8 +15467,8 @@ StringTable {
   CustomStringTableItem "{59A6ED92E301B152}" {
    Id "OVT-NeedBusStop"
    Target_en_us "You must click near another bus stop"
-   Target_it_it "Devi cliccare vicino a un'altra fermata dell'autobus"
    Target_fr_fr "Cliquez près d'un autre arrêt de bus"
+   Target_it_it "Devi cliccare vicino a un'altra fermata dell'autobus"
    Target_de_de "Du musst in der Nähe einer anderen Bushaltestelle klicken"
    Target_ru_ru "Вы должны нажать на карту  возле автобусной остановки"
    Target_ko_kr "다른 버스 정류장 근처를 클릭해야 합니다"
@@ -15433,8 +15491,8 @@ StringTable {
   CustomStringTableItem "{59C90534E23FD594}" {
    Id "OVT-NewOfficer"
    Target_en_us "has been made an officer"
-   Target_it_it "è stato promosso a ufficiale"
    Target_fr_fr "a été promu officier"
+   Target_it_it "è stato promosso a ufficiale"
    Target_de_de "wurde zum Offizier ernannt"
    Target_ru_ru "был назначен офицером"
    Target_ko_kr "장교로 임명되었습니다"
@@ -15457,8 +15515,8 @@ StringTable {
   CustomStringTableItem "{59C905341F0718F9}" {
    Id "OVT-NewOfficerYou"
    Target_en_us "You have been made an officer"
-   Target_it_it "Sei stato promosso a ufficiale"
    Target_fr_fr "Vous avez été promu officier"
+   Target_it_it "Sei stato promosso a ufficiale"
    Target_de_de "Du wurdest zum Offizier ernannt"
    Target_ru_ru "Вы назначены офицером"
    Target_ko_kr "당신은 장교로 임명되었습니다"
@@ -15504,8 +15562,8 @@ StringTable {
   CustomStringTableItem "{5D346D4FFDAE200A}" {
    Id "OVT-NoDrugs"
    Target_en_us "You are not carrying any drugs. Buy them from a gun dealer."
-   Target_it_it "Non hai droghe con te. Acquistale da un venditore di armi."
    Target_fr_fr "Vous ne transportez pas de drogue. Achetez en d'abord au vendeur d'armes."
+   Target_it_it "Non hai droghe con te. Acquistale da un venditore di armi."
    Target_de_de "Du trägst keine Drogen bei dir. Kaufe sie bei einem Waffenhändler."
    Target_ru_ru "У вас нет с собой никаких наркотиков. Купите их у торговца оружием."
    Target_ko_kr "당신은 마약을 소지하고 있지 않습니다. 총기 딜레에게서 구입하세요."
@@ -15528,8 +15586,8 @@ StringTable {
   CustomStringTableItem "{59A6ED9B869DC04C}" {
    Id "OVT-NoMedicalSupplies"
    Target_en_us "No medical supplies found in vehicle"
-   Target_it_it "Nessuna scorta medica trovata nel veicolo"
    Target_fr_fr "Pas de matériel médical dans le véhicule"
+   Target_it_it "Nessuna scorta medica trovata nel veicolo"
    Target_de_de "Keine medizinischen Vorräte im Fahrzeug gefunden"
    Target_ru_ru "В машине нет медикаментов"
    Target_ko_kr "차량 내에 의료 물자가 없습니다"
@@ -15552,8 +15610,8 @@ StringTable {
   CustomStringTableItem "{5DA486E22A59D4CA}" {
    Id "OVT-NoSupportersAvailable"
    Target_en_us "No supporters available in nearby towns"
-   Target_it_it "Nessun sostenitore disponibile nelle città vicine"
    Target_fr_fr "Aucun partisan disponible dans les villes voisines"
+   Target_it_it "Nessun sostenitore disponibile nelle città vicine"
    Target_de_de "In den umliegenden Städten sind keine Unterstützer verfügbar"
    Target_ru_ru "Нет доступных сторонников в близлежащих городах"
    Target_zh_cn "附近城镇没有可用的支持者"
@@ -15575,8 +15633,8 @@ StringTable {
   CustomStringTableItem "{59DA69F4EADC4C3E}" {
    Id "OVT-NoSupportersToRecruit"
    Target_en_us "There are not enough supporters in the nearest town to recruit"
-   Target_it_it "Non ci sono abbastanza sostenitori da reclutare nella città più vicina"
    Target_fr_fr "Il n'y a pas assez de soutien dans le village à proximité pour recruter"
+   Target_it_it "Non ci sono abbastanza sostenitori da reclutare nella città più vicina"
    Target_de_de "In der nächstgelegenen Stadt gibt es nicht genügend Unterstützer zum Rekrutieren"
    Target_ru_ru "В ближайшем населенном пункте не хватает сторонников для найма."
    Target_ko_kr "가장 가까운 마을에 지지자가 충분하지 않아 모집할 수 없습니다"
@@ -15651,8 +15709,8 @@ StringTable {
   CustomStringTableItem "{59CF196EEADAB2A1}" {
    Id "OVT-NoVehicleOnRamp"
    Target_en_us "No Vehicle on ramp"
-   Target_it_it "Nessun veicolo sulla rampa"
    Target_fr_fr "Pas de véhicule sur la rampe"
+   Target_it_it "Nessun veicolo sulla rampa"
    Target_de_de "Kein Fahrzeug auf der Rampe"
    Target_ru_ru "Нет техники на рампе"
    Target_ko_kr "램프에 차량이 없습니다"
@@ -15675,8 +15733,8 @@ StringTable {
   CustomStringTableItem "{59A2BD317EE6028A}" {
    Id "OVT-NoVehiclesNearby"
    Target_en_us "There are no vehicles nearby"
-   Target_it_it "Nessun veicolo nelle vicinanze"
    Target_fr_fr "Pas de véhicule à proximité"
+   Target_it_it "Nessun veicolo nelle vicinanze"
    Target_de_de "Es befinden sich keine Fahrzeuge in der Nähe"
    Target_ru_ru "Нет машин рядом"
    Target_ko_kr "주변에 차량이 없습니다"
@@ -15699,8 +15757,8 @@ StringTable {
   CustomStringTableItem "{599D3A640FAF1233}" {
    Id "OVT-OccupyingFaction"
    Target_en_us "Occupying Faction"
-   Target_it_it "Fazione occupante"
    Target_fr_fr "Faction dominante"
+   Target_it_it "Fazione occupante"
    Target_de_de "Besatzungsmacht"
    Target_ru_ru "Фракция оккупантов"
    Target_ko_kr "점령중인 세력"
@@ -15723,8 +15781,8 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E7FD}" {
    Id "OVT-OpenInventory"
    Target_en_us "Open Inventory"
-   Target_it_it "Apri inventario"
    Target_fr_fr "Ouvrir l'inventaire"
+   Target_it_it "Apri inventario"
    Target_de_de "Inventar öffnen"
    Target_ru_ru "Открыть инвентарь"
    Target_zh_cn "打开库存"
@@ -15743,11 +15801,199 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B8B000000000025}" {
+   Id "OVT-Options_Autosave_Enabled"
+   Target_en_us "Automatic saving"
+   Target_it_it "Salvataggio automatico"
+   Target_de_de "Automatische Speicherung"
+   Comment "Options menu - label of the switch that turns automatic campaign saves on and off."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1785656356
+   Author "Aaron Static"
+   LastChanged "lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000026}" {
+   Id "OVT-Options_Autosave_EnabledDesc"
+   Target_en_us "The campaign saves itself while it runs."
+   Target_it_it "La campagna si salva mentre è in esecuzione."
+   Target_de_de "Die Kampagne speichert selbst, während sie läuft."
+   Comment "Options menu - description under the automatic saving switch. It states a fact and gives no instruction."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1785656387
+   Author "Aaron Static"
+   LastChanged "lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000027}" {
+   Id "OVT-Options_Autosave_Interval"
+   Target_en_us "Time between saves"
+   Target_it_it "Tempo tra i salvataggi"
+   Target_de_de "18"\
+   "Zeit zwischen Speicherungen"
+   Comment "Options menu - label of the slider that sets the time between two automatic saves."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1785656415
+   Author "Aaron Static"
+   LastChanged "lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000028}" {
+   Id "OVT-Options_Autosave_IntervalDesc"
+   Target_en_us "The campaign waits this long between automatic saves."
+   Target_it_it "La campagna attende questo lasso di tempo tra i salvataggi automatici."
+   Target_de_de "Die Kampagne wartet so lange zwischen automatischen Speicherungen."
+   Comment "Options menu - description under the time between saves slider. It states a fact and gives no instruction."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1785656429
+   Author "Aaron Static"
+   LastChanged "lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000021}" {
+   Id "OVT-Options_Close"
+   Target_en_us "Close"
+   Target_it_it "Chiudi"
+   Target_de_de "Schliessen"
+   Comment "Options menu - the footer button that closes the screen."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1785656434
+   Author "Aaron Static"
+   LastChanged "lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000029}" {
+   Id "OVT-Options_Minutes"
+   Target_en_us "%1 min"
+   Target_it_it "%1 min"
+   Comment "Options menu - value format of the time between saves slider. %1 is a whole number of minutes."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000023}" {
+   Id "OVT-Options_Section_Faction"
+   Target_en_us "Resistance"
+   Target_it_it "Resistenza"
+   Target_de_de "Widerstand"
+   Comment "Options menu - section title above the settings that a resistance officer controls."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1785656494
+   Author "Aaron Static"
+   LastChanged "lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000022}" {
+   Id "OVT-Options_Section_Local"
+   Target_en_us "This Player"
+   Target_it_it "Questo giocatore"
+   Target_de_de "Dieser Spieler"
+   Comment "Options menu - section title above the settings that stay on this machine."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1785656486
+   Author "Aaron Static"
+   LastChanged "lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000024}" {
+   Id "OVT-Options_Section_World"
+   Target_en_us "Server"
+   Target_it_it "Server"
+   Comment "Options menu - section title above the settings that a server admin controls."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000020}" {
+   Id "OVT-Options_Title"
+   Target_en_us "Options"
+   Target_it_it "Opzioni"
+   Comment "Options menu - the screen title."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{599A1C5F66015FAB}" {
    Id "OVT-Overthrow"
    Target_en_us "Overthrow"
-   Target_it_it "Rovesciamento"
    Target_fr_fr "Overthrow"
+   Target_it_it "Rovesciamento"
    Target_de_de "Overthrow"
    Target_ru_ru "Overthrow"
    Target_zh_cn "抵抗"
@@ -15769,8 +16015,8 @@ StringTable {
   CustomStringTableItem "{5D305DE5B6029A1B}" {
    Id "OVT-Owned"
    Target_en_us "Owned"
-   Target_it_it "Di proprietà"
    Target_fr_fr "Possédé"
+   Target_it_it "Di proprietà"
    Target_de_de "Im Besitz"
    Target_ru_ru "Во владении"
    Target_ko_kr "소유됨"
@@ -15793,8 +16039,8 @@ StringTable {
   CustomStringTableItem "{5D34F5770B8834D2}" {
    Id "OVT-Owner"
    Target_en_us "Owner"
-   Target_it_it "Proprietario"
    Target_fr_fr "Propriétaire"
+   Target_it_it "Proprietario"
    Target_de_de "Besitzer"
    Target_ru_ru "Владелец"
    Target_ko_kr "소유자"
@@ -15817,8 +16063,8 @@ StringTable {
   CustomStringTableItem "{5D305CF7F4C3B9F3}" {
    Id "OVT-PerDay"
    Target_en_us "per day"
-   Target_it_it "al giorno"
    Target_fr_fr "par jour"
+   Target_it_it "al giorno"
    Target_de_de "pro Tag"
    Target_ru_ru "в день"
    Target_ko_kr "하루당"
@@ -15841,8 +16087,8 @@ StringTable {
   CustomStringTableItem "{598AD5529A3EEA5D}" {
    Id "OVT-Place_Camp"
    Target_en_us "Camp"
-   Target_it_it "Accampamento"
    Target_fr_fr "Camp"
+   Target_it_it "Accampamento"
    Target_de_de "Camp"
    Target_ru_ru "Лагерь"
    Target_ko_kr "캠프"
@@ -15908,8 +16154,8 @@ StringTable {
   CustomStringTableItem "{598AD55D632ED8B6}" {
    Id "OVT-Place_EquipmentBox"
    Target_en_us "Equipment Box"
-   Target_it_it "Cassa dell'equipaggiamento"
    Target_fr_fr "Caisse d'Équipement"
+   Target_it_it "Cassa dell'equipaggiamento"
    Target_de_de "Ausrüstungskiste"
    Target_ru_ru "Ящик для снаряжения"
    Target_ko_kr "장비 상자"
@@ -15955,8 +16201,8 @@ StringTable {
   CustomStringTableItem "{598AD554852E3A84}" {
    Id "OVT-Place_Floodlights"
    Target_en_us "Floodlights"
-   Target_it_it "Fari"
    Target_fr_fr "Projecteurs"
+   Target_it_it "Fari"
    Target_de_de "Flutlichter"
    Target_ru_ru "Прожектор"
    Target_ko_kr "투광등"
@@ -16002,8 +16248,8 @@ StringTable {
   CustomStringTableItem "{598AD553667F76AF}" {
    Id "OVT-Place_FOB"
    Target_en_us "FOB"
-   Target_it_it "FOB"
    Target_fr_fr "Avant poste"
+   Target_it_it "FOB"
    Target_de_de "FOB"
    Target_ru_ru "ПОБ"
    Target_zh_cn "FOB"
@@ -16070,8 +16316,8 @@ StringTable {
   CustomStringTableItem "{598AD55488E14CB4}" {
    Id "OVT-Place_Hedgehog"
    Target_en_us "Hedgehog"
-   Target_it_it "Riccio anticarro"
    Target_fr_fr "Obstacle"
+   Target_it_it "Riccio anticarro"
    Target_de_de "Panzersperre"
    Target_ru_ru "Еж"
    Target_ko_kr "대차량 장애물"
@@ -16117,8 +16363,8 @@ StringTable {
   CustomStringTableItem "{59CC0DB81CE327C8}" {
    Id "OVT-Place_Lamps"
    Target_en_us "Lamps"
-   Target_it_it "Lampade"
    Target_fr_fr "Lampes"
+   Target_it_it "Lampade"
    Target_de_de "Lampen"
    Target_ru_ru "Лампа"
    Target_ko_kr "등불"
@@ -16141,8 +16387,8 @@ StringTable {
   CustomStringTableItem "{59A5462C8A52FFB8}" {
    Id "OVT-Place_NextItem"
    Target_en_us "Next Item"
-   Target_it_it "Oggetto successivo"
    Target_fr_fr "Item Suivant"
+   Target_it_it "Oggetto successivo"
    Target_de_de "Nächster Gegenstand"
    Target_ru_ru "Следующий предмет"
    Target_ko_kr "다음 아이템"
@@ -16207,8 +16453,8 @@ StringTable {
   CustomStringTableItem "{59A2BD9099621079}" {
    Id "OVT-Place_Poster"
    Target_en_us "Recruitment Posters"
-   Target_it_it "Manifesti di reclutamento"
    Target_fr_fr "Affiche"
+   Target_it_it "Manifesti di reclutamento"
    Target_de_de "Rekrutierungsplakate"
    Target_ru_ru "Плакаты вербовки"
    Target_ko_kr "모집 포스터"
@@ -16254,8 +16500,8 @@ StringTable {
   CustomStringTableItem "{59A5462C90703535}" {
    Id "OVT-Place_PrevItem"
    Target_en_us "Previous Item"
-   Target_it_it "Oggetto precedente"
    Target_fr_fr "Item Précédent"
+   Target_it_it "Oggetto precedente"
    Target_de_de "Vorheriger Gegenstand"
    Target_ru_ru "Предыдущий предмет"
    Target_ko_kr "이전 아이템"
@@ -16278,8 +16524,8 @@ StringTable {
   CustomStringTableItem "{59A5462CB0574E5C}" {
    Id "OVT-Place_RotateLeft"
    Target_en_us "Rotate Left"
-   Target_it_it "Ruota a sinistra"
    Target_fr_fr "Rotation Gauche"
+   Target_it_it "Ruota a sinistra"
    Target_de_de "Nach links drehen"
    Target_ru_ru "Повернуть влево"
    Target_ko_kr "왼쪽으로 회전"
@@ -16302,8 +16548,8 @@ StringTable {
   CustomStringTableItem "{59A5462CB9759E35}" {
    Id "OVT-Place_RotateRight"
    Target_en_us "Rotate Right"
-   Target_it_it "Ruota Destra"
    Target_fr_fr "Rotation Droite"
+   Target_it_it "Ruota Destra"
    Target_de_de "Nach rechts drehen"
    Target_ru_ru "Повернуть вправо"
    Target_ko_kr "오른쪽으로 회전"
@@ -16326,8 +16572,8 @@ StringTable {
   CustomStringTableItem "{598AD55456A8B23F}" {
    Id "OVT-Place_Sandbags"
    Target_en_us "Sandbags"
-   Target_it_it "Sacchi di sabbia"
    Target_fr_fr "Sacs de sable"
+   Target_it_it "Sacchi di sabbia"
    Target_de_de "Sandsäcke"
    Target_ru_ru "Мешки с песком"
    Target_ko_kr "샌드백"
@@ -16373,8 +16619,8 @@ StringTable {
   CustomStringTableItem "{598AD552913ABE10}" {
    Id "OVT-Place_Signs"
    Target_en_us "Signs"
-   Target_it_it "Cartelli"
    Target_fr_fr "Panneaux"
+   Target_it_it "Cartelli"
    Target_de_de "Schilder"
    Target_ru_ru "Указатель"
    Target_ko_kr "표지판"
@@ -16408,8 +16654,8 @@ StringTable {
   CustomStringTableItem "{59C84C79C2AB441A}" {
    Id "OVT-Player"
    Target_en_us "Player"
-   Target_it_it "Giocatore"
    Target_fr_fr "Joueur"
+   Target_it_it "Giocatore"
    Target_de_de "Spieler"
    Target_ru_ru "Игрок"
    Target_zh_cn "玩家"
@@ -16599,8 +16845,8 @@ StringTable {
   CustomStringTableItem "{5976AC6DDD54D1E4}" {
    Id "OVT-Population"
    Target_en_us "Population"
-   Target_it_it "Popolazione"
    Target_fr_fr "Population"
+   Target_it_it "Popolazione"
    Target_de_de "Bevölkerung"
    Target_ru_ru "Население"
    Target_ko_kr "인구"
@@ -16623,8 +16869,8 @@ StringTable {
   CustomStringTableItem "{5D5AD8AF15D8A1B9}" {
    Id "OVT-Port"
    Target_en_us "Port"
-   Target_it_it "Porto"
    Target_fr_fr "Port"
+   Target_it_it "Porto"
    Target_de_de "Hafen"
    Target_ru_ru "Порт"
    Target_ko_kr "항구"
@@ -16647,8 +16893,8 @@ StringTable {
   CustomStringTableItem "{5D5AD8AFF9999255}" {
    Id "OVT-Port_Buy_10"
    Target_en_us "Buy 10"
-   Target_it_it "Acquista 10"
    Target_fr_fr "Acheter 10"
+   Target_it_it "Acquista 10"
    Target_de_de "10 kaufen"
    Target_ru_ru "Купить 10"
    Target_ko_kr "구매 10"
@@ -16671,8 +16917,8 @@ StringTable {
   CustomStringTableItem "{5D5AD8AFCF71A6EB}" {
    Id "OVT-Port_Buy_100"
    Target_en_us "Buy 100"
-   Target_it_it "Acquista 100"
    Target_fr_fr "Acheter 100"
+   Target_it_it "Acquista 100"
    Target_de_de "100 kaufen"
    Target_ru_ru "Купить 100"
    Target_ko_kr "구매 100"
@@ -17376,8 +17622,8 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6793}" {
    Id "OVT-Progress-CollectingContainers"
    Target_en_us "Collecting containers"
-   Target_it_it "Raccolta container"
    Target_fr_fr "Collecte de conteneurs"
+   Target_it_it "Raccolta container"
    Target_de_de "Container werden eingesammelt"
    Target_ru_ru "Сбор контейнеров"
    Target_ko_kr "컨테이너 수집 중"
@@ -17400,8 +17646,8 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6797}" {
    Id "OVT-Progress-Completed"
    Target_en_us "Completed: %1 items"
-   Target_it_it "Completati: %1 elementi"
    Target_fr_fr "Terminé : %1 objets"
+   Target_it_it "Completati: %1 elementi"
    Target_de_de "Abgeschlossen: %1 Gegenstände"
    Target_ru_ru "Завершено: %1 предметов"
    Target_ko_kr "완료: %1 아이템"
@@ -17424,8 +17670,8 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6798}" {
    Id "OVT-Progress-CompletedWithSkipped"
    Target_en_us "Completed: %1 items (%2 skipped)"
-   Target_it_it "Completati: %1 elementi (%2 saltati)"
    Target_fr_fr "Terminé : %1 objets (%2 ignorés)"
+   Target_it_it "Completati: %1 elementi (%2 saltati)"
    Target_de_de "Abgeschlossen: %1 Gegenstände (%2 übersprungen)"
    Target_ru_ru "Завершено: %1 предметов (%2 пропущено)"
    Target_ko_kr "완료: %1 아이템 (%2 스킵됨)"
@@ -17448,8 +17694,8 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F679A}" {
    Id "OVT-Progress-DeployingFOB"
    Target_en_us "Deploying FOB"
-   Target_it_it "Dispiegamento FOB"
    Target_fr_fr "Déploiement de la FOB"
+   Target_it_it "Dispiegamento FOB"
    Target_de_de "FOB wird errichtet"
    Target_ru_ru "Развертывание ПОБ"
    Target_ko_kr "FOB 배치 중"
@@ -17472,8 +17718,8 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6799}" {
    Id "OVT-Progress-Error"
    Target_en_us "Error: %1"
-   Target_it_it "Errore: %1"
    Target_fr_fr "Erreur : %1"
+   Target_it_it "Errore: %1"
    Target_de_de "Fehler: %1"
    Target_ru_ru "Ошибка: %1"
    Target_ko_kr "오류: %1"
@@ -17496,8 +17742,8 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6794}" {
    Id "OVT-Progress-LootingBattlefield"
    Target_en_us "Looting battlefield"
-   Target_it_it "Recupero bottino dal campo di battaglia"
    Target_fr_fr "Pillage du champ de bataille"
+   Target_it_it "Recupero bottino dal campo di battaglia"
    Target_de_de "Schlachtfeld wird geplündert"
    Target_ru_ru "Сбор трофеев с поля боя"
    Target_ko_kr "전리품 수집 중"
@@ -17620,8 +17866,8 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6792}" {
    Id "OVT-Progress-TransferringItems"
    Target_en_us "Transferring items"
-   Target_it_it "Trasferimento oggetti"
    Target_fr_fr "Transfert d'objets"
+   Target_it_it "Trasferimento oggetti"
    Target_de_de "Gegenstände werden übertragen"
    Target_ru_ru "Перемещение предметов"
    Target_ko_kr "아이템 이동 중"
@@ -17644,8 +17890,8 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6796}" {
    Id "OVT-Progress-TransferringToWarehouse"
    Target_en_us "Transferring to warehouse"
-   Target_it_it "Trasferimento al magazzino"
    Target_fr_fr "Transfert vers l'entrepôt"
+   Target_it_it "Trasferimento al magazzino"
    Target_de_de "Übertragung ins Lagerhaus"
    Target_ru_ru "Перемещение на склад"
    Target_ko_kr "창고로 이동 중"
@@ -17668,8 +17914,8 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6795}" {
    Id "OVT-Progress-UndeployingFOB"
    Target_en_us "Undeploying FOB"
-   Target_it_it "Rimozione FOB"
    Target_fr_fr "Déploiement de la FOB"
+   Target_it_it "Rimozione FOB"
    Target_de_de "FOB wird abgebaut"
    Target_ru_ru "Сворачивание ПОБ"
    Target_ko_kr "FOB 철수 중"
@@ -17817,8 +18063,8 @@ StringTable {
   CustomStringTableItem "{5D34EBA09AC421EB}" {
    Id "OVT-PutInWarehouse"
    Target_en_us "Put In Warehouse"
-   Target_it_it "Metti nel magazzino"
    Target_fr_fr "Mettre dans l'Entrepôt"
+   Target_it_it "Metti nel magazzino"
    Target_de_de "Ins Lagerhaus legen"
    Target_ru_ru "Поместить на склад"
    Target_ko_kr "창고에 넣기"
@@ -18869,8 +19115,8 @@ StringTable {
   CustomStringTableItem "{5DA486E22A59D4CB}" {
    Id "OVT-RecruitedFromTent"
    Target_en_us "Recruited supporter from nearby town"
-   Target_it_it "Reclutato sostenitore dalla città vicina"
    Target_fr_fr "Partisan recruté de la ville voisine"
+   Target_it_it "Reclutato sostenitore dalla città vicina"
    Target_de_de "Unterstützer aus der nahegelegenen Stadt rekrutiert"
    Target_ru_ru "Завербован сторонник из близлежащего города"
    Target_zh_cn "从附近城镇招募了支持者"
@@ -18892,8 +19138,8 @@ StringTable {
   CustomStringTableItem "{5DA486E22A59D4C9}" {
    Id "OVT-RecruitFromTent"
    Target_en_us "Recruit from Tent"
-   Target_it_it "Recluta dalla tenda"
    Target_fr_fr "Recruter de la tente"
+   Target_it_it "Recluta dalla tenda"
    Target_de_de "Am Zelt rekrutieren"
    Target_ru_ru "Завербовать из палатки"
    Target_zh_cn "从帐篷招募"
@@ -18915,8 +19161,8 @@ StringTable {
   CustomStringTableItem "{59DA76A7366B7006}" {
    Id "OVT-RecruitGunner"
    Target_en_us "Recruit Gunner"
-   Target_it_it "Recluta mitragliere"
    Target_fr_fr "Recruter Homme de main"
+   Target_it_it "Recluta mitragliere"
    Target_de_de "Schützen rekrutieren"
    Target_ru_ru "Нанять пулеметчика"
    Target_ko_kr "용병 모집"
@@ -18939,8 +19185,8 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E3916A9}" {
    Id "OVT-RecruitLimitReached"
    Target_en_us "You have reached the maximum number of recruits (16)"
-   Target_it_it "Hai raggiunto il numero massimo di reclute (16)"
    Target_fr_fr "Vous avez atteint le nombre maximum de recrues (16)"
+   Target_it_it "Hai raggiunto il numero massimo di reclute (16)"
    Target_de_de "Du hast die maximale Anzahl an Rekruten erreicht (16)"
    Target_ru_ru "Вы достигли максимального количества бойцов (16)"
    Target_zh_cn "你已达到招募人员的最大数量 (16)"
@@ -19491,8 +19737,8 @@ StringTable {
   CustomStringTableItem "{5D305CF6351DD698}" {
    Id "OVT-Rent"
    Target_en_us "Rent"
-   Target_it_it "Affitto"
    Target_fr_fr "Louer"
+   Target_it_it "Affitto"
    Target_de_de "Mieten"
    Target_ru_ru "Арендовать"
    Target_ko_kr "임대하기"
@@ -19526,8 +19772,8 @@ StringTable {
   CustomStringTableItem "{5D342475BAF79297}" {
    Id "OVT-RentIncome"
    Target_en_us "Rent Income"
-   Target_it_it "Entrate da affitto"
    Target_fr_fr "Loyer"
+   Target_it_it "Entrate da affitto"
    Target_de_de "Mieteinnahmen"
    Target_ru_ru "Доход с сдачи в аренду"
    Target_ko_kr "임대 수입"
@@ -19550,8 +19796,8 @@ StringTable {
   CustomStringTableItem "{5D305DE90B69493E}" {
    Id "OVT-Renting"
    Target_en_us "Renting"
-   Target_it_it "Affitto in corso"
    Target_fr_fr "En Location"
+   Target_it_it "Affitto in corso"
    Target_de_de "Mieten"
    Target_ru_ru "Арендуется"
    Target_ko_kr "임대 중"
@@ -19596,8 +19842,8 @@ StringTable {
   CustomStringTableItem "{59D0228A8D1E8EE6}" {
    Id "OVT-RepairVehicle"
    Target_en_us "Repair Vehicle"
-   Target_it_it "Ripara veicolo"
    Target_fr_fr "Réparer Véhicule"
+   Target_it_it "Ripara veicolo"
    Target_de_de "Fahrzeug reparieren"
    Target_ru_ru "Починить технику"
    Target_ko_kr "차량 수리"
@@ -19640,8 +19886,8 @@ StringTable {
   CustomStringTableItem "{59A6DA4EA0AEA2B4}" {
    Id "OVT-Resistance_Funds"
    Target_en_us "Total Funds"
-   Target_it_it "Fondi totali"
    Target_fr_fr "Total des Fonds"
+   Target_it_it "Fondi totali"
    Target_de_de "Gesamtvermögen"
    Target_ru_ru "Всего средств"
    Target_ko_kr "총 자금"
@@ -19664,8 +19910,8 @@ StringTable {
   CustomStringTableItem "{59A6DA490E88EB49}" {
    Id "OVT-Resistance_NextIncome"
    Target_en_us "Next income is at"
-   Target_it_it "Prossima entrata prevista per"
    Target_fr_fr "Prochain Revenu à"
+   Target_it_it "Prossima entrata prevista per"
    Target_de_de "Nächstes Einkommen um"
    Target_ru_ru "Следущий доход в"
    Target_ko_kr "다음 수입은"
@@ -19688,8 +19934,8 @@ StringTable {
   CustomStringTableItem "{59A6DA4F1007870D}" {
    Id "OVT-Resistance_SupporterDonations"
    Target_en_us "Supporter Donations"
-   Target_it_it "Donazioni dei sostenitori"
    Target_fr_fr "Dons des Partisans"
+   Target_it_it "Donazioni dei sostenitori"
    Target_de_de "Spenden von Unterstützern"
    Target_ru_ru "Помощь сторонников"
    Target_ko_kr "지지자 기부금"
@@ -19712,8 +19958,8 @@ StringTable {
   CustomStringTableItem "{59A6DA4E32870B30}" {
    Id "OVT-Resistance_TotalTaxes"
    Target_en_us "Total Taxes"
-   Target_it_it "Tasse totali"
    Target_fr_fr "Impôt Total"
+   Target_it_it "Tasse totali"
    Target_de_de "Steuern gesamt"
    Target_ru_ru "Всего налогов"
    Target_ko_kr "총 세금"
@@ -19759,8 +20005,8 @@ StringTable {
   CustomStringTableItem "{59C84C6734016F2F}" {
    Id "OVT-ResistanceTax"
    Target_en_us "Resistance Tax"
-   Target_it_it "Tassa della Resistenza"
    Target_fr_fr "Impôt de la résistance"
+   Target_it_it "Tassa della Resistenza"
    Target_de_de "Widerstandssteuer"
    Target_ru_ru "Налоги сопротивления"
    Target_ko_kr "저항군 세금"
@@ -21150,8 +21396,8 @@ StringTable {
   CustomStringTableItem "{5D5C558A4B6DA3CC}" {
    Id "OVT-Save"
    Target_en_us "Save"
-   Target_it_it "Salva"
    Target_fr_fr "Sauvegarder"
+   Target_it_it "Salva"
    Target_de_de "Speichern"
    Target_ru_ru "Сохранить"
    Target_ko_kr "저장"
@@ -21174,8 +21420,8 @@ StringTable {
   CustomStringTableItem "{5D5C55886813A4AB}" {
    Id "OVT-Saved"
    Target_en_us "Game Saved"
-   Target_it_it "Partita salvata"
    Target_fr_fr "Partie Sauvegardée"
+   Target_it_it "Partita salvata"
    Target_de_de "Spiel gespeichert"
    Target_ru_ru "Игра сохранена"
    Target_ko_kr "게임 저장"
@@ -21376,8 +21622,8 @@ StringTable {
   CustomStringTableItem "{5D346D4FE8D27151}" {
    Id "OVT-SellDrugs"
    Target_en_us "Sell Drugs"
-   Target_it_it "Vendi droga"
    Target_fr_fr "Vendre la Drogue"
+   Target_it_it "Vendi droga"
    Target_de_de "Drogen verkaufen"
    Target_ru_ru "Продать наркотики"
    Target_ko_kr "마약 판매"
@@ -21400,8 +21646,8 @@ StringTable {
   CustomStringTableItem "{59C84C7D7D70BC9B}" {
    Id "OVT-SendFunds"
    Target_en_us "Send Funds"
-   Target_it_it "Invia fondi"
    Target_fr_fr "Envoyer des Fonds"
+   Target_it_it "Invia fondi"
    Target_de_de "Geldmittel senden"
    Target_ru_ru "Отправить средства"
    Target_ko_kr "자금 송금"
@@ -21424,8 +21670,8 @@ StringTable {
   CustomStringTableItem "{59C84C79FA503BB0}" {
    Id "OVT-SendFundsMoney"
    Target_en_us "Send Money"
-   Target_it_it "Invia denaro"
    Target_fr_fr "Envoyer de l'Argent"
+   Target_it_it "Invia denaro"
    Target_de_de "Geld senden"
    Target_ru_ru "Отправить деньги"
    Target_ko_kr "송금하기"
@@ -21448,8 +21694,8 @@ StringTable {
   CustomStringTableItem "{59C84C7D798A8CAE}" {
    Id "OVT-SendMoney"
    Target_en_us "Send Money"
-   Target_it_it "Invia denaro"
    Target_fr_fr "Envoyer de l'Argent"
+   Target_it_it "Invia denaro"
    Target_de_de "Geld senden"
    Target_ru_ru "Отправить деньги"
    Target_ko_kr "송금하기"
@@ -21472,8 +21718,8 @@ StringTable {
   CustomStringTableItem "{5D34246ED529442C}" {
    Id "OVT-SetAsHome"
    Target_en_us "Set As Home"
-   Target_it_it "Imposta come base"
    Target_fr_fr "Définir comme Domicile"
+   Target_it_it "Imposta come base"
    Target_de_de "Als Zuhause festlegen"
    Target_ru_ru "Сделать домом"
    Target_ko_kr "집으로 설정"
@@ -21496,8 +21742,8 @@ StringTable {
   CustomStringTableItem "{59C5275452D1E646}" {
    Id "OVT-SetHome"
    Target_en_us "Set Home"
-   Target_it_it "Imposta base"
    Target_fr_fr "Définir Domicile"
+   Target_it_it "Imposta base"
    Target_de_de "Zuhause festlegen"
    Target_ru_ru "Сделать домом"
    Target_ko_kr "집 설정"
@@ -21541,8 +21787,8 @@ StringTable {
   CustomStringTableItem "{598EF9FA0D65B880}" {
    Id "OVT-Shop"
    Target_en_us "Shop"
-   Target_it_it "Negozio"
    Target_fr_fr "Magasin"
+   Target_it_it "Negozio"
    Target_de_de "Geschäft"
    Target_ru_ru "Магазин"
    Target_ko_kr "상점"
@@ -21565,8 +21811,8 @@ StringTable {
   CustomStringTableItem "{598EF9F5BEC520FE}" {
    Id "OVT-Shop_Buy"
    Target_en_us "Buy"
-   Target_it_it "Acquista"
    Target_fr_fr "Acheter"
+   Target_it_it "Acquista"
    Target_de_de "Kaufen"
    Target_ru_ru "Купить"
    Target_ko_kr "구입"
@@ -21589,8 +21835,8 @@ StringTable {
   CustomStringTableItem "{5D2847DF447B51C3}" {
    Id "OVT-Shop_Buying"
    Target_en_us "Buy for"
-   Target_it_it "Acquista per"
    Target_fr_fr "Acheter pour"
+   Target_it_it "Acquista per"
    Target_de_de "Kaufen für"
    Target_ru_ru "Купить за"
    Target_ko_kr "구입 대상"
@@ -21656,8 +21902,8 @@ StringTable {
   CustomStringTableItem "{599070D91BB49BFF}" {
    Id "OVT-Shop_InStock"
    Target_en_us "In Stock"
-   Target_it_it "Disponibile"
    Target_fr_fr "En stock"
+   Target_it_it "Disponibile"
    Target_de_de "Auf Lager"
    Target_ru_ru "В наличии"
    Target_ko_kr "재고 있음"
@@ -21744,6 +21990,7 @@ StringTable {
    Id "OVT-Shop_NoMatches"
    Target_en_us "No items match your search"
    Target_it_it "Nessun articolo corrisponde alla ricerca"
+   Target_de_de "Keine Artikel entsprechen Ihrer Suche."
    Comment "Shop menu - shown in the details pane when the search box filters out every row on the current tab"
    DevNote ""
    Repro ""
@@ -21752,17 +21999,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1788843600
+   Modified 1785656322
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598EF98DD5C74403}" {
    Id "OVT-Shop_Open"
    Target_en_us "Open Shop"
-   Target_it_it "Apri Negozio"
    Target_fr_fr "Ouvrir magasin"
+   Target_it_it "Apri Negozio"
    Target_de_de "Geschäft öffnen"
    Target_ru_ru "Открыть магазин"
    Target_ko_kr "가게 열기"
@@ -21827,8 +22074,8 @@ StringTable {
   CustomStringTableItem "{5D305CF7EDB14774}" {
    Id "OVT-Shop_Renting"
    Target_en_us "Rent for"
-   Target_it_it "Noleggia per"
    Target_fr_fr "Louer pour"
+   Target_it_it "Noleggia per"
    Target_de_de "Mieten für"
    Target_ru_ru "Арендовать за"
    Target_ko_kr "임대 대상"
@@ -21852,6 +22099,7 @@ StringTable {
    Id "OVT-Shop_SearchLabel"
    Target_en_us "Search"
    Target_it_it "Cerca"
+   Target_de_de "Suche"
    Comment "Placeholder label on the shop menu's item search box"
    DevNote ""
    Repro ""
@@ -21860,17 +22108,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1788843600
+   Modified 1785656222
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{598EF9F4548C4AF0}" {
    Id "OVT-Shop_Sell"
    Target_en_us "Sell"
-   Target_it_it "Vendi"
    Target_fr_fr "Vendre"
+   Target_it_it "Vendi"
    Target_de_de "Verkaufen"
    Target_ru_ru "Продать"
    Target_ko_kr "판매"
@@ -21914,8 +22162,8 @@ StringTable {
   CustomStringTableItem "{5D2847DF5BAEC7BF}" {
    Id "OVT-Shop_Selling"
    Target_en_us "Sell for"
-   Target_it_it "Vendi per"
    Target_fr_fr "Vendre pour"
+   Target_it_it "Vendi per"
    Target_de_de "Verkaufen für"
    Target_ru_ru "Продать за"
    Target_ko_kr "판매 대상"
@@ -22571,8 +22819,8 @@ StringTable {
   CustomStringTableItem "{59CC0DA6C7151F8E}" {
    Id "OVT-SoldierCost"
    Target_en_us "Soldier Cost"
-   Target_it_it "Costo soldato"
    Target_fr_fr "Coût Soldat"
+   Target_it_it "Costo soldato"
    Target_de_de "Kosten pro Soldat"
    Target_ru_ru "Стоймость бойца"
    Target_ko_kr "병사 비용"
@@ -22595,8 +22843,8 @@ StringTable {
   CustomStringTableItem "{5976AC6DA44FAA95}" {
    Id "OVT-Stability"
    Target_en_us "Stability"
-   Target_it_it "Stabilità"
    Target_fr_fr "Stabilité"
+   Target_it_it "Stabilità"
    Target_de_de "Stabilität"
    Target_ru_ru "Стабильность"
    Target_ko_kr "안정성"
@@ -22619,8 +22867,8 @@ StringTable {
   CustomStringTableItem "{599EDE889725FB78}" {
    Id "OVT-StabilityMod_CorruptMayor"
    Target_en_us "Corrupt Mayor"
-   Target_it_it "Sindaco corrotto"
    Target_fr_fr "Maire Corrompu"
+   Target_it_it "Sindaco corrotto"
    Target_de_de "Korrupter Bürgermeister"
    Target_ru_ru "Коррумпированый мэр"
    Target_ko_kr "부패한 시장"
@@ -22643,8 +22891,8 @@ StringTable {
   CustomStringTableItem "{599EDE89679CDCF8}" {
    Id "OVT-StabilityMod_DrugProblems"
    Target_en_us "Drug Problems"
-   Target_it_it "Problemi di droga"
    Target_fr_fr "Problème de Drogue"
+   Target_it_it "Problemi di droga"
    Target_de_de "Drogenprobleme"
    Target_ru_ru "Проблемы с наркотиками"
    Target_ko_kr "마약 문제"
@@ -22667,8 +22915,8 @@ StringTable {
   CustomStringTableItem "{5D5ECE59227BBB1D}" {
    Id "OVT-StabilityMod_NearbyTower"
    Target_en_us "Nearby Radio Tower"
-   Target_it_it "Torre radio nelle vicinanze"
    Target_fr_fr "Tour Radio Proche"
+   Target_it_it "Torre radio nelle vicinanze"
    Target_de_de "Nahegelegener Funkturm"
    Target_ru_ru "Радио вышка поблизости"
    Target_ko_kr "근처 라디오 타워"
@@ -22691,8 +22939,8 @@ StringTable {
   CustomStringTableItem "{599EDE889FDE918F}" {
    Id "OVT-StabilityMod_OrganizedCrime"
    Target_en_us "Organized Crime"
-   Target_it_it "Crimine organizzato"
    Target_fr_fr "Crime Organisé"
+   Target_it_it "Crimine organizzato"
    Target_de_de "Organisierte Kriminalität"
    Target_ru_ru "Организованные преступные группировки"
    Target_ko_kr "조직 범죄"
@@ -22715,8 +22963,8 @@ StringTable {
   CustomStringTableItem "{599EDE88A96FB592}" {
    Id "OVT-StabilityMod_RecentDeath"
    Target_en_us "Recent Deaths"
-   Target_it_it "Morti recenti"
    Target_fr_fr "Morts Récentes"
+   Target_it_it "Morti recenti"
    Target_de_de "Kürzliche Todesfälle"
    Target_ru_ru "Недавние смерти"
    Target_ko_kr "최근 사망 사건"
@@ -22739,8 +22987,8 @@ StringTable {
   CustomStringTableItem "{599EDE88A12DC28E}" {
    Id "OVT-StabilityMod_RecentGunfire"
    Target_en_us "Recent Gunfire"
-   Target_it_it "Sparatorie recenti"
    Target_fr_fr "Coups de feu Récents"
+   Target_it_it "Sparatorie recenti"
    Target_de_de "Kürzliche Schüsse"
    Target_ru_ru "Недавняя стрельба"
    Target_ko_kr "최근 총격 사건"
@@ -22763,8 +23011,8 @@ StringTable {
   CustomStringTableItem "{599EDE88BA907EC8}" {
    Id "OVT-StabilityMod_RecentPatrol"
    Target_en_us "Recent Patrol"
-   Target_it_it "Pattuglia recente"
    Target_fr_fr "Patrouille Récente"
+   Target_it_it "Pattuglia recente"
    Target_de_de "Kürzliche Patrouille"
    Target_ru_ru "Недавний патруль"
    Target_ko_kr "최근 순찰"
@@ -22787,8 +23035,8 @@ StringTable {
   CustomStringTableItem "{59A2BDB5E41019D9}" {
    Id "OVT-StabilityMod_StrongEconomy"
    Target_en_us "Strong Economy"
-   Target_it_it "Economia solida"
    Target_fr_fr "Economie fleurissante"
+   Target_it_it "Economia solida"
    Target_de_de "Florierende Wirtschaft"
    Target_ru_ru "Сильная экономика"
    Target_ko_kr "번영하는 경제"
@@ -22811,8 +23059,8 @@ StringTable {
   CustomStringTableItem "{599D315AC7BF1F3F}" {
    Id "OVT-StartGame"
    Target_en_us "Start Game"
-   Target_it_it "Avvia partita"
    Target_fr_fr "Lancer le jeu"
+   Target_it_it "Avvia partita"
    Target_de_de "Spiel starten"
    Target_ru_ru "Начать игру"
    Target_ko_kr "게임 시작"
@@ -22875,8 +23123,8 @@ StringTable {
   CustomStringTableItem "{6B0F11B0AA01C030}" {
    Id "OVT-StartNewGame"
    Target_en_us "Start New Game"
-   Target_it_it "Avvia nuova partita"
    Target_fr_fr "Nouvelle partie"
+   Target_it_it "Avvia nuova partita"
    Target_de_de "Neues Spiel starten"
    Target_ru_ru "Начать новую игру"
    Target_ko_kr "새 게임 시작"
@@ -22919,8 +23167,8 @@ StringTable {
   CustomStringTableItem "{5D305DE5A4ECB590}" {
    Id "OVT-StopRenting"
    Target_en_us "Stop Renting"
-   Target_it_it "Interrompi affitto"
    Target_fr_fr "Ne plus louer"
+   Target_it_it "Interrompi affitto"
    Target_de_de "Miete beenden"
    Target_ru_ru "Завершить аренду"
    Target_ko_kr "임대 중단"
@@ -23403,8 +23651,8 @@ StringTable {
   CustomStringTableItem "{59A45C635CF39E07}" {
    Id "OVT-StorageEmpty"
    Target_en_us "Equipment Box is empty"
-   Target_it_it "La cassa dell'equipaggiamento è vuota"
    Target_fr_fr "La caisse est vide"
+   Target_it_it "La cassa dell'equipaggiamento è vuota"
    Target_de_de "Ausrüstungskiste ist leer"
    Target_ru_ru "Ящик со снаряжением пуст"
    Target_ko_kr "장비 상자가 비어 있습니다"
@@ -23578,8 +23826,8 @@ StringTable {
   CustomStringTableItem "{5976AC6DA03E2264}" {
    Id "OVT-Support"
    Target_en_us "Support"
-   Target_it_it "Supporto"
    Target_fr_fr "Support"
+   Target_it_it "Supporto"
    Target_de_de "Unterstützung"
    Target_ru_ru "Поддержка"
    Target_ko_kr "지원"
@@ -23602,8 +23850,8 @@ StringTable {
   CustomStringTableItem "{59B2E6B07F085219}" {
    Id "OVT-Supporters"
    Target_en_us "Supporters"
-   Target_it_it "Sostenitori"
    Target_fr_fr "Partisans"
+   Target_it_it "Sostenitori"
    Target_de_de "Unterstützer"
    Target_ru_ru "Сторонники"
    Target_ko_kr "지지자들"
@@ -23626,8 +23874,8 @@ StringTable {
   CustomStringTableItem "{6478C5E37CF8C172}" {
    Id "OVT-SupportingFaction"
    Target_en_us "Supporting Faction"
-   Target_it_it "Fazione di supporto"
    Target_fr_fr "Faction de soutien"
+   Target_it_it "Fazione di supporto"
    Target_de_de "Unterstützte Fraktion"
    Target_ru_ru "Поддерживающая фракция"
    Target_ko_kr "지원 세력"
@@ -23661,8 +23909,8 @@ StringTable {
   CustomStringTableItem "{59A2BDA8428BCAC2}" {
    Id "OVT-SupportMod_RecruitmentPosters"
    Target_en_us "Recruitment Posters"
-   Target_it_it "Manifesti di reclutamento"
    Target_fr_fr "Affiches de propagande"
+   Target_it_it "Manifesti di reclutamento"
    Target_de_de "Rekrutierungsplakate"
    Target_ru_ru "Плакаты вербовки"
    Target_ko_kr "모집 포스터"
@@ -23705,8 +23953,8 @@ StringTable {
   CustomStringTableItem "{5D34EBA0F73327D6}" {
    Id "OVT-TakeFromWarehouse"
    Target_en_us "Take From Warehouse"
-   Target_it_it "Prendi dal magazzino"
    Target_fr_fr "Prendre de l'entrepôt"
+   Target_it_it "Prendi dal magazzino"
    Target_de_de "Aus Lagerhaus nehmen"
    Target_ru_ru "Взять со склада"
    Target_ko_kr "창고에서 가져오기"
@@ -23729,8 +23977,8 @@ StringTable {
   CustomStringTableItem "{59A49A81DADADDD9}" {
    Id "OVT-TooCloseBase"
    Target_en_us "You cannot place that here, it is too close to a military base"
-   Target_it_it "Tu Non puoi piazzarlo qui, è troppo vicino a una base militare"
    Target_fr_fr "Impossible de placer ici, trop près d'une Base"
+   Target_it_it "Tu Non puoi piazzarlo qui, è troppo vicino a una base militare"
    Target_de_de "Du kannst das hier nicht platzieren, es befindet sich zu nah an einer Militärbasis"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к военной базе"
    Target_ko_kr "여기에 배치할 수 없습니다. 군사 기지와 너무 가깝습니다."
@@ -23753,8 +24001,8 @@ StringTable {
   CustomStringTableItem "{59A49A8618B96EBF}" {
    Id "OVT-TooCloseBuilding"
    Target_en_us "You cannot place that here, it is too close to a building"
-   Target_it_it "Non puoi piazzarlo qui, è troppo vicino a un edificio"
    Target_fr_fr "Impossible de placer ici, trop près d'un batiment"
+   Target_it_it "Non puoi piazzarlo qui, è troppo vicino a un edificio"
    Target_de_de "Du kannst das hier nicht platzieren, es befindet sich zu nah an einem Gebäude"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к постройке"
    Target_ko_kr "여기에 배치할 수 없습니다. 건물과 너무 가깝습니다."
@@ -23777,8 +24025,8 @@ StringTable {
   CustomStringTableItem "{5D58260519D9B5F3}" {
    Id "OVT-TooCloseFOB"
    Target_en_us "You cannot place that here, it is too close to an FOB"
-   Target_it_it "Non puoi piazzarlo qui, è troppo vicino a una FOB"
    Target_fr_fr "Impossible de placer ici, trop près d'un avant poste"
+   Target_it_it "Non puoi piazzarlo qui, è troppo vicino a una FOB"
    Target_de_de "Du kannst das hier nicht platzieren, es befindet sich zu nah an einem FOB"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к ПОБ"
    Target_ko_kr "여기에 배치할 수 없습니다. FOB와 너무 가깝습니다."
@@ -23812,8 +24060,8 @@ StringTable {
   CustomStringTableItem "{59A49A81B65FE81A}" {
    Id "OVT-TooCloseTown"
    Target_en_us "You cannot place that here, it is too close to a town"
-   Target_it_it "Non puoi piazzarlo qui, è troppo vicino a una città"
    Target_fr_fr "Impossible de placer ici, trop près d'un village"
+   Target_it_it "Non puoi piazzarlo qui, è troppo vicino a una città"
    Target_de_de "Du kannst das hier nicht platzieren, es befindet sich zu nah an einer Stadt"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к населенному пункту"
    Target_ko_kr "여기에 배치할 수 없습니다. 마을과 너무 가깝습니다."
@@ -23836,8 +24084,8 @@ StringTable {
   CustomStringTableItem "{59CC0DA6C9595E99}" {
    Id "OVT-Total"
    Target_en_us "Total"
-   Target_it_it "Totale"
    Target_fr_fr "Total"
+   Target_it_it "Totale"
    Target_de_de "Gesamt"
    Target_ru_ru "Итого"
    Target_ko_kr "총합"
@@ -24175,6 +24423,7 @@ StringTable {
    Id "OVT-Transfer_NoMatches"
    Target_en_us "No items match your search"
    Target_it_it "Nessun elemento corrisponde alla ricerca"
+   Target_de_de "Keine Artikel entsprechen Ihrer Suche"
    Comment "Transfer screen (Storage, Port, Production Buy, Resource Transfer) - shown in the checkout message area when the search box filters out every row on the current tab"
    DevNote ""
    Repro ""
@@ -24183,9 +24432,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1788843600
+   Modified 1785656400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -24313,6 +24562,7 @@ StringTable {
    Id "OVT-Transfer_SearchLabel"
    Target_en_us "Search"
    Target_it_it "Cerca"
+   Target_de_de "Suche"
    Comment "Placeholder label on the transfer screen's item search box (Storage, Port, Production Buy, Resource Transfer)"
    DevNote ""
    Repro ""
@@ -24321,9 +24571,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1788843600
+   Modified 1785656183
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -25521,8 +25771,8 @@ StringTable {
   CustomStringTableItem "{59A2BD31647163FE}" {
    Id "OVT-UnloadStorage"
    Target_en_us "Unload vehicle into storage"
-   Target_it_it "Scarica veicolo nel magazzino"
    Target_fr_fr "Décharger cargaison"
+   Target_it_it "Scarica veicolo nel magazzino"
    Target_de_de "Aus Fahrzeug entladen"
    Target_ru_ru "Выгрузить из транспорта"
    Target_ko_kr "차량에서 내리기"
@@ -25602,8 +25852,8 @@ StringTable {
   CustomStringTableItem "{59CF196279F7E5EB}" {
    Id "OVT-Upgrades"
    Target_en_us "Upgrades"
-   Target_it_it "Migliora"
    Target_fr_fr "Améliorations"
+   Target_it_it "Migliora"
    Target_de_de "Verbesserungen"
    Target_ru_ru "Улучшения"
    Target_ko_kr "업그레이드"
@@ -25626,8 +25876,8 @@ StringTable {
   CustomStringTableItem "{59D0228A83C99C85}" {
    Id "OVT-UpgradeVehicle"
    Target_en_us "Upgrade Vehicle"
-   Target_it_it "Migliora veicolo"
    Target_fr_fr "Amélioration du véhicule"
+   Target_it_it "Migliora veicolo"
    Target_de_de "Fahrzeug verbessern"
    Target_ru_ru "Улучшить технику"
    Target_ko_kr "차량 업그레이드"
@@ -25650,8 +25900,8 @@ StringTable {
   CustomStringTableItem "{59A45C63209BFF7C}" {
    Id "OVT-VehicleEmpty"
    Target_en_us "Vehicle is empty"
-   Target_it_it "Il veicolo è vuoto"
    Target_fr_fr "Le véhicule est vide"
+   Target_it_it "Il veicolo è vuoto"
    Target_de_de "Fahrzeug ist leer"
    Target_ru_ru "Техника пуста"
    Target_ko_kr "차량이 비어 있습니다"
@@ -25674,8 +25924,8 @@ StringTable {
   CustomStringTableItem "{59CF1968DDFE36E4}" {
    Id "OVT-VehicleLoaded"
    Target_en_us "Vehicle has been loaded"
-   Target_it_it "Il veicolo è stato caricato"
    Target_fr_fr "Le véhicule a été chargé"
+   Target_it_it "Il veicolo è stato caricato"
    Target_de_de "Fahrzeug wurde beladen"
    Target_ru_ru "Техника была загружена"
    Target_ko_kr "차량이 적재되었습니다"
@@ -25698,8 +25948,8 @@ StringTable {
   CustomStringTableItem "{59D05006BA9FDE60}" {
    Id "OVT-VehicleRepaired"
    Target_en_us "Vehicle has been repaired"
-   Target_it_it "Il veicolo è stato riparato"
    Target_fr_fr "Le véhicule a été réparé"
+   Target_it_it "Il veicolo è stato riparato"
    Target_de_de "Fahrzeug wurde repariert"
    Target_ru_ru "Техника была починена"
    Target_ko_kr "차량이 수리되었습니다"
@@ -25722,8 +25972,8 @@ StringTable {
   CustomStringTableItem "{59CF1968C9785E22}" {
    Id "OVT-VehicleUnloaded"
    Target_en_us "Vehicle has been unloaded into storage"
-   Target_it_it "Il veicolo è stato scaricato nel magazzino"
    Target_fr_fr "Le véhicule a été déchargé"
+   Target_it_it "Il veicolo è stato scaricato nel magazzino"
    Target_de_de "Fahrzeug wurde ins Lager entladen"
    Target_ru_ru "Техника была выгружена в хранилище"
    Target_ko_kr "차량이 보관소에 하역되었습니다"
@@ -25746,8 +25996,8 @@ StringTable {
   CustomStringTableItem "{59D05006B011C8B2}" {
    Id "OVT-VehicleUpgraded"
    Target_en_us "Vehicle has been upgraded"
-   Target_it_it "Il veicolo è stato migliorato"
    Target_fr_fr "Le véhicule a été amélioré"
+   Target_it_it "Il veicolo è stato migliorato"
    Target_de_de "Fahrzeug wurde verbessert"
    Target_ru_ru "Техника была улучшена"
    Target_ko_kr "차량이 업그레이드되었습니다"
@@ -25781,8 +26031,8 @@ StringTable {
   CustomStringTableItem "{5D48A6A90A8A2177}" {
    Id "OVT-Warehouse"
    Target_en_us "Warehouse"
-   Target_it_it "Magazino"
    Target_fr_fr "Entrepôt"
+   Target_it_it "Magazino"
    Target_de_de "Lagerhaus"
    Target_ru_ru "Склад"
    Target_ko_kr "보관소"
@@ -25805,8 +26055,8 @@ StringTable {
   CustomStringTableItem "{5D48A6A70B5716E0}" {
    Id "OVT-Warehouse_Take_1"
    Target_en_us "Take 1"
-   Target_it_it "Prendi 1"
    Target_fr_fr "Prendre 1"
+   Target_it_it "Prendi 1"
    Target_de_de "1 nehmen"
    Target_ru_ru "Взять 1"
    Target_ko_kr "1개 가져가기"
@@ -25829,8 +26079,8 @@ StringTable {
   CustomStringTableItem "{5D48A6A7175CDEFD}" {
    Id "OVT-Warehouse_Take_10"
    Target_en_us "Take 10"
-   Target_it_it "Prendi 10"
    Target_fr_fr "Prendre 10"
+   Target_it_it "Prendi 10"
    Target_de_de "10 nehmen"
    Target_ru_ru "Взять 10"
    Target_ko_kr "10개 가져가기"
@@ -25853,8 +26103,8 @@ StringTable {
   CustomStringTableItem "{5D48A6A714F7BA51}" {
    Id "OVT-Warehouse_Take_100"
    Target_en_us "Take 100"
-   Target_it_it "Prendi 100"
    Target_fr_fr "Prendre 100"
+   Target_it_it "Prendi 100"
    Target_de_de "100 nehmen"
    Target_ru_ru "Взять 100"
    Target_ko_kr "100개 가져가기"
@@ -25921,8 +26171,8 @@ StringTable {
   CustomStringTableItem "{59A550CC7B4FE9CA}" {
    Id "OVT_Mission_Eden_Description"
    Target_en_us "The persistent and dynamic revolution simulator"
-   Target_it_it "Il simulatore di rivoluzione persistente e dinamico"
    Target_fr_fr "Le simulateur de révolte dynamique"
+   Target_it_it "Il simulatore di rivoluzione persistente e dinamico"
    Target_de_de "Der persistente und dynamische Revolutionssimulator"
    Target_ru_ru "Сохраняемый и динамический симулятор революции"
    Target_ko_kr "지속적이고 역동적인 혁명 시뮬레이터"
@@ -25975,240 +26225,6 @@ StringTable {
    Modified 1716472290
    Author "Aaron Static"
    LastChanged "Lemmi"
-  }
-  CustomStringTableItem "{6B8B000000000020}" {
-   Id "OVT-Options_Title"
-   Target_en_us "Options"
-   Target_it_it "Opzioni"
-   Comment "Options menu - the screen title."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788000000
-   Author "Aaron Static"
-   LastChanged ""
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8B000000000021}" {
-   Id "OVT-Options_Close"
-   Target_en_us "Close"
-   Target_it_it "Chiudi"
-   Comment "Options menu - the footer button that closes the screen."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788000000
-   Author "Aaron Static"
-   LastChanged ""
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8B000000000022}" {
-   Id "OVT-Options_Section_Local"
-   Target_en_us "This Player"
-   Target_it_it "Questo giocatore"
-   Comment "Options menu - section title above the settings that stay on this machine."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788000000
-   Author "Aaron Static"
-   LastChanged ""
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8B000000000023}" {
-   Id "OVT-Options_Section_Faction"
-   Target_en_us "Resistance"
-   Target_it_it "Resistenza"
-   Comment "Options menu - section title above the settings that a resistance officer controls."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788000000
-   Author "Aaron Static"
-   LastChanged ""
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8B000000000024}" {
-   Id "OVT-Options_Section_World"
-   Target_en_us "Server"
-   Target_it_it "Server"
-   Comment "Options menu - section title above the settings that a server admin controls."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788000000
-   Author "Aaron Static"
-   LastChanged ""
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8B000000000025}" {
-   Id "OVT-Options_Autosave_Enabled"
-   Target_en_us "Automatic saving"
-   Target_it_it "Salvataggio automatico"
-   Comment "Options menu - label of the switch that turns automatic campaign saves on and off."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788000000
-   Author "Aaron Static"
-   LastChanged ""
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8B000000000026}" {
-   Id "OVT-Options_Autosave_EnabledDesc"
-   Target_en_us "The campaign saves itself while it runs."
-   Target_it_it "La campagna si salva mentre è in esecuzione."
-   Comment "Options menu - description under the automatic saving switch. It states a fact and gives no instruction."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788000000
-   Author "Aaron Static"
-   LastChanged ""
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8B000000000027}" {
-   Id "OVT-Options_Autosave_Interval"
-   Target_en_us "Time between saves"
-   Target_it_it "Tempo tra i salvataggi"
-   Comment "Options menu - label of the slider that sets the time between two automatic saves."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788000000
-   Author "Aaron Static"
-   LastChanged ""
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8B000000000028}" {
-   Id "OVT-Options_Autosave_IntervalDesc"
-   Target_en_us "The campaign waits this long between automatic saves."
-   Target_it_it "La campagna attende questo lasso di tempo tra i salvataggi automatici."
-   Comment "Options menu - description under the time between saves slider. It states a fact and gives no instruction."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788000000
-   Author "Aaron Static"
-   LastChanged ""
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8B000000000029}" {
-   Id "OVT-Options_Minutes"
-   Target_en_us "%1 min"
-   Target_it_it "%1 min"
-   Comment "Options menu - value format of the time between saves slider. %1 is a whole number of minutes."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788000000
-   Author "Aaron Static"
-   LastChanged ""
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8B00000000002C}" {
-   Id "OVT-FieldManual_Options_Text"
-   Target_en_us "The Options screen holds up to three sections: This Player, Resistance and Server. A section appears only if it holds an option you may change. The Resistance section needs officer status. The Server section needs the admin role. A single player or the host of their own game always sees every section.<br/>The Server section carries two settings for the campaign save. Automatic saving turns the save timer on or off. Time between saves sets the gap between automatic saves, from 2 to 60 minutes. A change applies at once, with no restart, and it reaches every player. It also survives a save and a Continue."
-   Target_it_it "La schermata delle opzioni comprende fino a tre sezioni: Giocatore, Resistenza e Server. Una sezione appare solo se contiene un'opzione modificabile. La sezione Resistenza richiede lo stato di ufficiale. La sezione Server richiede il ruolo di amministratore. Un giocatore singolo o l'host della propria partita visualizza sempre tutte le sezioni.<br/>La sezione Server contiene due impostazioni per il salvataggio della campagna. Il salvataggio automatico attiva o disattiva il timer di salvataggio. L'intervallo tra i salvataggi definisce la distanza temporale tra i salvataggi automatici, da 2 a 60 minuti. Le modifiche diventano effettive immediatamente, senza necessità di riavvio, e si applicano a tutti i giocatori; l'impostazione viene inoltre mantenuta dopo il salvataggio e la ripresa della partita."
-   Comment "Field Manual, Getting Started > Main Menu page, new Options sub-section for core/options phase 9. Reuses #OVT-MainMenu_Options as the sub-header, same pattern as the existing Resistance sub-section. CONTAINS RICH TEXT: one <br/> line break between the two paragraphs, must be preserved in translation. FACT-CHECKED against docs/features/core/options/implementation.md sections 1, 3.5, 3.9, D7 and D9; Scripts/Game/UI/Context/OVT_OptionsContext.c (section walk, empty section never renders); Scripts/Game/GameMode/Managers/OVT_OptionsManagerComponent.c RegisterDefaults (the two autosave options, interval 120-3600s in 60s steps, shown in minutes); Scripts/Game/Components/Controller/OVT_OptionsRequestComponent.c PlayerMayEditScope and PlayerMayEditWorld (officer for Resistance, admin role for Server, single player or listen host always passes). Reference voice: describes, does not instruct."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788000000
-   Author "Claude"
-   LastChanged ""
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{00FB78163A7D6ED9}" {
-   Id "OVT-JobsMenu_SearchLabel"
-   Target_en_us "Search"
-   Target_it_it "Cerca"
-   Comment "Label on the Jobs menu search box. The player types part of a job title here to filter the job list."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788562013
-   Author "Overthrow"
-   LastChanged "Overthrow"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{3FE075E205F00400}" {
-   Id "OVT-Jobs_NoMatches"
-   Target_en_us "No jobs match your search."
-   Target_it_it "Nessun incarico corrisponde alla ricerca."
-   Comment "Shown in the Jobs menu when the search text or town filter hides every job in the list."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788562013
-   Author "Overthrow"
-   LastChanged "Overthrow"
-   ImageLink ""
-   Hidden 0
   }
  }
 }
